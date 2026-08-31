@@ -1,0 +1,67 @@
+// Prisma schema for Gura Bicha Sports Bar
+// Dates are stored as UTC midnights; the `date` field is a calendar date
+// (venue timezone: Africa/Addis_Ababa, UTC+3 — no time-of-day meaning).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  date        DateTime
+  startTime   String
+  endTime     String
+  imageUrl    String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Match {
+  id          String   @id @default(cuid())
+  homeTeam    String
+  awayTeam    String
+  competition String
+  kickoff     DateTime
+  live        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model VenueTable {
+  id       String @id @default(cuid())
+  code     String @unique
+  zone     String
+  capacity Int
+  seats    String
+}
+
+model MenuItem {
+  id          String  @id @default(cuid())
+  name        String
+  category    String
+  price       Float
+  description String
+  popular     Boolean @default(false)
+}
+
+model Reservation {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  date      DateTime
+  slot      String
+  tableCode String
+  guests    Int
+  name      String
+  phone     String
+  email     String?
+  request   String?
+  status    String   @default("CONFIRMED")
+  createdAt DateTime @default(now())
+}
