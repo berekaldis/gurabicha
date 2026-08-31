@@ -69,3 +69,24 @@ Stage Summary:
 - App fully fullstack: SQLite via Prisma (Event, Match, VenueTable, MenuItem, Reservation), 7 API routes, 4 screens + 5-step reservation wizard
 - Demo data in DB: GB-2804 (T4 LUNCH confirmed, via API), GB-9681 (T5 LUNCH confirmed), GB-9674 (cancelled)
 - To reseed demo content: bun prisma/seed.ts (idempotent, relative dates)
+
+---
+Task ID: 12
+Agent: main (Z.ai Code)
+Task: Telegram Mini App polish + load ALL 2026 Premier League & Champions League fixtures into the calendar
+
+Work Log:
+- Discovered data/matches-2026.json (563 real fixtures fetched from ESPN scoreboard API: 374 PL + 189 UCL, Jan-Dec 2026 incl. FT scores for 2025/26 half and SCHEDULED 2026/27 half) existed but prisma/seed.ts only seeded 3 dummy matches
+- Rewrote seed section 4: loadFixtures() reads data/matches-2026.json via import.meta.url + node:fs, createMany with full fields (stage/season/venue/status/scores/featured); re-run seed -> 563 matches in DB
+- Fixed stale dev-server Prisma client (year route served rows missing new schema fields): restarted `bun run dev` (was started before schema push)
+- Verified APIs: /api/matches?year=2026 -> 563 (85 Jan, 58 Feb, 48 Mar, 40 Apr, 44 May, 20 Aug, 48 Sep, 73 Oct, 69 Nov, 78 Dec); /api/matches upcoming -> real fixtures (Aston Villa v Arsenal MW2 tonight); tables T5 BOOKED after test booking; events 5
+- Telegram BackButton interceptor system in src/lib/gb/telegram.tsx: BackInterceptorsContext + useTelegramBackInterceptor(handler|null), LIFO dispatch; wired: gb-app (default = go home), gb-reserve (steps back through wizard Date->home / Table->Date / Guests->Table / Details->Guests), gb-header (closes nav sheet first)
+- Telegram CloudStorage for saved guest details: cloudStorageGet/Set/Remove helpers with versionAtLeast("6.4") guard + 1s timeout race (mock client v6.0 logged "CloudStorage is not supported" and never called back -> promise would hang); restore reads CloudStorage then localStorage; DetailsStep writes both, removes from both on opt-out; GB_DETAILS_KEY const
+- Lint fixes (react-hooks v6 rules): ref-sync moved into per-render effects (3 hooks), loadYearMatches + TelegramProvider setCtx deferred a microtask/tick; final lint 0 errors (1 known font false-positive)
+- Browser E2E (agent-browser, 430x932 + 1280x800): home shows real MW2 fixture; fixtures calendar Aug 2026 with PL dots + "20 THIS MONTH", Jan 2026 UCL MD7/8 silver dots + FT scores (Palace 1-1 Fulham etc.), Sep 8 shows UCL MD1 (AEK Athens v LASK, Club Brugge v Aston Villa, Dortmund v Villarreal) with BOOK buttons; booked Dortmund v Villarreal -> GB-3283 (T5, Sep 8 EVENING, 4 guests) via full wizard; My Reservations phone lookup +1 911 234 567 finds GB-3283 CONFIRMED; menu renders ETB categories; T5 shows BOOKED + "5 of 6 tables free" via API; zero console/page errors; desktop framed layout verified
+
+Stage Summary:
+- Calendar now shows EVERY Premier League & Champions League match of 2026 (both halves of both seasons) with per-day PL/UCL dots, EAT kickoffs, venues, live/FT states
+- App is a complete Telegram Mini App: SDK script, ready/expand/theme colors, haptics, MainButton confirm, context-aware BackButton (wizard steps + sheet close), initData sent on every request + server-side HMAC verification, Telegram user prefill + identity-bound bookings (mine=1), Telegram share, CloudStorage profile persistence
+- Refresh fixtures anytime: bun data/fetch-fixtures.ts && bun prisma/seed.ts (wipes DB incl. reservations)
+- Demo data in DB: reservation GB-3283 (Dortmund v Villarreal, Sep 8 2026, T5)

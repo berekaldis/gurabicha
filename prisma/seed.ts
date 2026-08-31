@@ -3,14 +3,42 @@
  * Run with: bun prisma/seed.ts
  *
  * Idempotent: wipes all models first, then recreates.
- * All dates are computed RELATIVE to "now" so data is always fresh.
+ * Dates for events are computed RELATIVE to "now" so data is always fresh.
+ * Football fixtures are the REAL Premier League & Champions League schedules
+ * for calendar year 2026, fetched from ESPN's public scoreboard API into
+ * data/matches-2026.json (re-fetch anytime with: bun data/fetch-fixtures.ts).
  * Venue timezone: Africa/Addis_Ababa (UTC+3). Calendar dates are stored as
  * UTC midnights: new Date(Date.UTC(y, m, d)).
  */
 
+import { readFileSync } from "node:fs";
 import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
+
+/** One match row inside data/matches-2026.json. */
+interface SeededMatch {
+  competition: "Premier League" | "Champions League";
+  season: string;
+  stage: string;
+  kickoff: string; // ISO UTC, e.g. "2026-01-01T17:30Z"
+  homeTeam: string;
+  awayTeam: string;
+  venue: string;
+  status: "SCHEDULED" | "LIVE" | "FINISHED";
+  homeScore: number | null;
+  awayScore: number | null;
+  featured: boolean;
+}
+
+function loadFixtures(): SeededMatch[] {
+  const url = new URL("../data/matches-2026.json", import.meta.url);
+  const raw = JSON.parse(readFileSync(url, "utf8")) as { matches: SeededMatch[] };
+  if (!Array.isArray(raw.matches) || raw.matches.length === 0) {
+    throw new Error("data/matches-2026.json is empty — run: bun data/fetch-fixtures.ts");
+  }
+  return raw.matches;
+}
 
 /* ---------------- date helpers (all UTC) ---------------- */
 
@@ -101,44 +129,23 @@ async function main() {
     },
   });
 
-  // 4. Matches — Addis time = UTC+3
-  const matchDay = (offset: number, hoursUTC: number, minutesUTC: number): Date => {
-    const day = addDaysUTC(today, offset);
-    return new Date(
-      Date.UTC(
-        day.getUTCFullYear(),
-        day.getUTCMonth(),
-        day.getUTCDate(),
-        hoursUTC,
-        minutesUTC
-      )
-    );
-  };
-
+  // 4. Matches — real Premier League & Champions League schedules for 2026
+  const fixtures = loadFixtures();
   await db.match.createMany({
-    data: [
-      {
-        homeTeam: "Liverpool",
-        awayTeam: "Man City",
-        competition: "Premier League",
-        kickoff: matchDay(0, 16, 0), // today 19:00 Addis
-        live: true,
-      },
-      {
-        homeTeam: "Arsenal",
-        awayTeam: "Chelsea",
-        competition: "Premier League",
-        kickoff: matchDay(1, 17, 45), // tomorrow 20:45 Addis
-        live: false,
-      },
-      {
-        homeTeam: "Real Madrid",
-        awayTeam: "Barcelona",
-        competition: "La Liga",
-        kickoff: matchDay(2, 19, 0), // day after tomorrow 22:00 Addis
-        live: false,
-      },
-    ],
+    data: fixtures.map((m) => ({
+      homeTeam: m.homeTeam,
+      awayTeam: m.awayTeam,
+      competition: m.competition,
+      season: m.season,
+      stage: m.stage,
+      venue: m.venue === "" ? null : m.venue,
+      kickoff: new Date(m.kickoff),
+      status: m.status,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      featured: m.featured,
+      live: false, // liveness is derived from kickoff time client-side
+    })),
   });
 
   // 5. Menu (prices in ETB)

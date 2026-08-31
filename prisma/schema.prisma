@@ -29,9 +29,18 @@ model Match {
   homeTeam    String
   awayTeam    String
   competition String
+  season      String   @default("")
+  stage       String   @default("")
+  venue       String?
   kickoff     DateTime
+  status      String   @default("SCHEDULED")
+  homeScore   Int?
+  awayScore   Int?
+  featured    Boolean  @default(false)
   live        Boolean  @default(false)
   createdAt   DateTime @default(now())
+
+  @@index([kickoff])
 }
 
 model VenueTable {
@@ -62,6 +71,10 @@ model Reservation {
   phone     String
   email     String?
   request   String?
+  matchId   String?
+  matchLabel String?
+  telegramUserId   String?
+  telegramUsername String?
   status    String   @default("CONFIRMED")
   createdAt DateTime @default(now())
 }

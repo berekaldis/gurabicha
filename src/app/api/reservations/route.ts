@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { verifyTelegramInitData } from "@/lib/telegram-server";
 
 export const dynamic = "force-dynamic";
 
@@ -38,18 +39,34 @@ async function generateUniqueCode(): Promise<string> {
 }
 
 /**
- * GET /api/reservations?phone=X
- * Looks up reservations by phone. The query is normalized to digits-only,
- * then matched with startsWith against stored (also digits-only) phones.
+ * GET /api/reservations?phone=X     -> lookup by phone (normalized, startsWith)
+ * GET /api/reservations?mine=1      -> lookup by Telegram identity (x-telegram-init-data header)
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const phoneParam = searchParams.get("phone");
+    const mineParam = searchParams.get("mine");
+
+    if (mineParam === "1") {
+      const tgUser = verifyTelegramInitData(request.headers.get("x-telegram-init-data"));
+      if (!tgUser) {
+        return NextResponse.json(
+          { error: "Telegram identity required. Open this app from Telegram." },
+          { status: 401 }
+        );
+      }
+      const reservations = await db.reservation.findMany({
+        where: { telegramUserId: String(tgUser.id) },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      });
+      return NextResponse.json({ reservations });
+    }
 
     if (!phoneParam || phoneParam.trim() === "") {
       return NextResponse.json(
-        { error: "Missing required query param: phone" },
+        { error: "Missing required query param: phone (or mine=1 with Telegram header)" },
         { status: 400 }
       );
     }
@@ -77,8 +94,9 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/reservations
- * Body: { date, slot, tableCode, guests, name, phone, email?, request? }
- * Validates Thursday-only bookings, capacity, double-booking (409) and more.
+ * Body: { date, slot, tableCode, guests, name, phone, email?, request?, matchId? }
+ * Validates capacity, double-booking (409) and more; binds the Telegram user
+ * from the x-telegram-init-data header when present.
  */
 export async function POST(request: Request) {
   try {
@@ -91,20 +109,28 @@ export async function POST(request: Request) {
 
     const data = (body ?? {}) as Record<string, unknown>;
 
+    /* ---- telegram identity ---- */
+    const tgHeader = request.headers.get("x-telegram-init-data");
+    let telegramUserId: string | null = null;
+    let telegramUsername: string | null = null;
+    if (tgHeader) {
+      const tgUser = verifyTelegramInitData(tgHeader);
+      if (!tgUser) {
+        return NextResponse.json(
+          { error: "Telegram identity verification failed. Please reopen the Mini App." },
+          { status: 401 }
+        );
+      }
+      telegramUserId = String(tgUser.id);
+      telegramUsername = tgUser.username ?? null;
+    }
+
     /* ---- date ---- */
     const dateStr = typeof data.date === "string" ? data.date : "";
     const date = parseUTCDate(dateStr);
     if (!date) {
       return NextResponse.json(
         { error: "Invalid date. Must be a real calendar date in YYYY-MM-DD format." },
-        { status: 400 }
-      );
-    }
-
-    /* ---- Thursday only ---- */
-    if (date.getUTCDay() !== 4) {
-      return NextResponse.json(
-        { error: "Reservations are only available on Thursdays. Please pick a Thursday." },
         { status: 400 }
       );
     }
@@ -177,6 +203,32 @@ export async function POST(request: Request) {
     }
     const phone = normalizePhone(phoneRaw);
 
+    /* ---- match (optional) ---- */
+    let matchId: string | null = null;
+    let matchLabel: string | null = null;
+    if (typeof data.matchId === "string" && data.matchId.trim() !== "") {
+      const match = await db.match.findUnique({ where: { id: data.matchId.trim() } });
+      if (!match) {
+        return NextResponse.json({ error: "Unknown match selected." }, { status: 400 });
+      }
+      // The reservation must be for the same day the match kicks off.
+      const kickoffDay = new Date(
+        Date.UTC(
+          match.kickoff.getUTCFullYear(),
+          match.kickoff.getUTCMonth(),
+          match.kickoff.getUTCDate()
+        )
+      );
+      if (kickoffDay.getTime() !== date.getTime()) {
+        return NextResponse.json(
+          { error: "Selected match does not kick off on the chosen date." },
+          { status: 400 }
+        );
+      }
+      matchId = match.id;
+      matchLabel = `${match.homeTeam} vs ${match.awayTeam} · ${match.competition} — ${match.stage}`;
+    }
+
     /* ---- availability (409) ---- */
     const conflict = await db.reservation.findFirst({
       where: { date, slot, tableCode, status: "CONFIRMED" },
@@ -213,6 +265,10 @@ export async function POST(request: Request) {
         phone,
         email,
         request: reservationRequest,
+        matchId,
+        matchLabel,
+        telegramUserId,
+        telegramUsername,
         status: "CONFIRMED",
       },
     });

@@ -3,24 +3,39 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { Toaster } from "sonner";
+import { gbApi } from "@/lib/gb/api";
+import {
+  cloudStorageGet,
+  GB_DETAILS_KEY,
+  haptics,
+  TelegramProvider,
+  useTelegram,
+  useTelegramBackButton,
+  useTelegramBackInterceptors,
+} from "@/lib/gb/telegram";
+import {
+  type DraftMatch,
+  type GbMatch,
+  type ReserveDraft,
+  type SavedDetails,
+  type Screen,
+  type Slot,
+  toISODate,
+} from "@/lib/gb/types";
 import { GbBottomNav } from "./gb-bottom-nav";
+import { GbFixturesScreen } from "./gb-fixtures";
 import { GbHeader } from "./gb-header";
 import { GbHome } from "./gb-home";
 import { GbMenu } from "./gb-menu";
 import { GbReserve } from "./gb-reserve";
 import { GbReservations } from "./gb-reservations";
-import {
-  nextThursdayISO,
-  type ReserveDraft,
-  type SavedDetails,
-  type Screen,
-} from "@/lib/gb/types";
 
 const EMPTY_DRAFT: ReserveDraft = {
   date: null,
-  slot: "LUNCH",
+  slot: "EVENING",
   table: null,
   guests: 4,
+  match: null,
   reservation: null,
 };
 
@@ -31,17 +46,26 @@ const fade = {
   transition: { duration: 0.18 },
 };
 
-export default function GbApp() {
+function GbAppInner() {
   const [screen, setScreen] = useState<Screen>("home");
   const [draft, setDraft] = useState<ReserveDraft>(EMPTY_DRAFT);
   const [savedDetails, setSavedDetails] = useState<SavedDetails | null>(null);
+  const [yearMatches, setYearMatches] = useState<GbMatch[] | null>(null);
+  const [yearMatchesError, setYearMatchesError] = useState<string | null>(null);
+  const [yearMatchesLoading, setYearMatchesLoading] = useState(true);
+  const year = new Date().getFullYear();
 
-  // Restore saved guest details from localStorage (async so no cascading render).
+  // Restore saved guest details: Telegram CloudStorage first (persists across
+  // devices), then localStorage as fallback. Async so no cascading render.
   useEffect(() => {
     let alive = true;
     void (async () => {
       try {
-        const raw = localStorage.getItem("gb:details");
+        const [cloud, local] = await Promise.all([
+          cloudStorageGet(GB_DETAILS_KEY),
+          Promise.resolve(localStorage.getItem(GB_DETAILS_KEY)),
+        ]);
+        const raw = cloud ?? local;
         if (!raw) return;
         const parsed = JSON.parse(raw) as SavedDetails;
         await Promise.resolve();
@@ -55,22 +79,55 @@ export default function GbApp() {
     };
   }, []);
 
+  const loadYearMatches = useCallback(() => {
+    setYearMatchesLoading(true);
+    setYearMatchesError(null);
+    gbApi
+      .matchesByYear(year)
+      .then(
+        (res) => {
+          setYearMatches(res.matches);
+          setYearMatchesLoading(false);
+        },
+        (err: unknown) => {
+          setYearMatchesError((err as Error).message);
+          setYearMatchesLoading(false);
+        }
+      );
+  }, [year]);
+
+  useEffect(() => {
+    // Deferred one microtask: the fetch flips loading state synchronously,
+    // which cascades if run directly inside the effect body.
+    void Promise.resolve().then(loadYearMatches);
+  }, [loadYearMatches]);
+
   const goTo = useCallback((next: Screen) => {
+    haptics.tap();
     setScreen(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  // Telegram hardware-style back: give the deepest open UI (reserve wizard
+  // steps, nav sheet) the first chance to handle it, then fall back to home.
+  const { runInterceptors } = useTelegramBackInterceptors();
+  useTelegramBackButton(screen !== "home", () => {
+    if (!runInterceptors()) goTo("home");
+  });
+
   const startReserve = useCallback(() => {
-    setDraft({ ...EMPTY_DRAFT, date: nextThursdayISO() });
+    setDraft({ ...EMPTY_DRAFT, date: toISODate(new Date()) });
     setScreen("reserve");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const scrollToMatches = useCallback(() => {
-    setScreen("home");
-    window.setTimeout(() => {
-      document.getElementById("gb-matches")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
+  /** Jump into the wizard from the fixtures screen (or a match card) with
+   *  date + optional match + slot pre-filled; land on the table step. */
+  const reserveFor = useCallback((date: string, match: DraftMatch | null, slot: Slot) => {
+    haptics.tap();
+    setDraft({ ...EMPTY_DRAFT, date, match, slot });
+    setScreen("reserve");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   return (
@@ -80,13 +137,32 @@ export default function GbApp() {
       <main className="flex-1">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={screen} {...fade}>
-            {screen === "home" && <GbHome onReserve={startReserve} onMenu={() => goTo("menu")} />}
+            {screen === "home" && (
+              <GbHome
+                onReserve={startReserve}
+                onFixtures={() => goTo("fixtures")}
+                onMenu={() => goTo("menu")}
+                onReserveMatch={reserveFor}
+              />
+            )}
+            {screen === "fixtures" && (
+              <GbFixturesScreen
+                matches={yearMatches}
+                loading={yearMatchesLoading}
+                error={yearMatchesError}
+                onRetry={loadYearMatches}
+                onReserveMatch={reserveFor}
+              />
+            )}
             {screen === "reserve" && (
               <GbReserve
                 draft={draft}
                 onChange={setDraft}
                 savedDetails={savedDetails}
                 onSaveDetails={setSavedDetails}
+                yearMatches={yearMatches}
+                yearMatchesLoading={yearMatchesLoading}
+                startStep={draft.match ? "table" : "date"}
                 onHome={() => goTo("home")}
                 onViewReservations={() => goTo("reservations")}
               />
@@ -102,12 +178,20 @@ export default function GbApp() {
       <GbBottomNav
         screen={screen}
         onHome={() => goTo("home")}
-        onMatches={scrollToMatches}
+        onFixtures={() => goTo("fixtures")}
         onReserve={startReserve}
         onMenu={() => goTo("menu")}
       />
 
       <Toaster theme="dark" position="top-center" richColors closeButton />
     </div>
+  );
+}
+
+export default function GbApp() {
+  return (
+    <TelegramProvider>
+      <GbAppInner />
+    </TelegramProvider>
   );
 }

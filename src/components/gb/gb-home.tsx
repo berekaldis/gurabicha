@@ -1,17 +1,23 @@
 "use client";
 
-import { ArrowRight, Music2, Tv, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, CalendarPlus, Music2, Tv, UtensilsCrossed } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { gbApi } from "@/lib/gb/api";
 import {
+  addisDayKey,
   formatDayShort,
   formatKickoff,
-  teamInitials,
+  type DraftMatch,
   type GbEvent,
   type GbMatch,
+  type Slot,
 } from "@/lib/gb/types";
+import {
+  CompetitionBadge,
+  FixtureRow,
+  slotForMatch,
+} from "./gb-fixtures";
 import {
   GbErrorBox,
   GbPill,
@@ -52,8 +58,16 @@ function EventCard({ event, wide }: { event: GbEvent; wide?: boolean }) {
   );
 }
 
-function MatchCard({ match }: { match: GbMatch }) {
+function MatchCard({
+  match,
+  onReserveMatch,
+}: {
+  match: GbMatch;
+  onReserveMatch: (date: string, match: DraftMatch, slot: Slot) => void;
+}) {
   const kickoff = formatKickoff(match.kickoff);
+  const finished = match.status === "FINISHED";
+
   return (
     <div className="relative overflow-hidden rounded-[14px] border border-gold/25 bg-panel p-4">
       <div
@@ -62,28 +76,39 @@ function MatchCard({ match }: { match: GbMatch }) {
       />
       <div className="relative">
         <div className="mb-4 flex items-center justify-center gap-2">
+          <CompetitionBadge competition={match.competition} />
           <span className="text-center text-[10px] font-extrabold tracking-[0.15em] text-gold">
-            {match.competition.toUpperCase()}
+            {match.stage}
           </span>
-          {match.live && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[9px] font-bold text-red-400">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" aria-hidden />
-              LIVE
-            </span>
-          )}
         </div>
 
         <div className="flex items-center justify-center gap-5">
           <div className="w-[92px] text-center">
             <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-[#181818] font-display text-sm text-gold">
-              {teamInitials(match.homeTeam)}
+              {match.homeTeam
+                .split(/\s+/)
+                .map((w) => w[0])
+                .join("")
+                .slice(0, 3)
+                .toUpperCase()}
             </div>
             <div className="truncate text-[11px] font-bold uppercase text-white">{match.homeTeam}</div>
           </div>
-          <span className="font-display text-lg text-gold">VS</span>
+          {finished && match.homeScore !== null && match.awayScore !== null ? (
+            <span className="font-display text-2xl text-gold">
+              {match.homeScore}–{match.awayScore}
+            </span>
+          ) : (
+            <span className="font-display text-lg text-gold">VS</span>
+          )}
           <div className="w-[92px] text-center">
             <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-[#181818] font-display text-sm text-gold">
-              {teamInitials(match.awayTeam)}
+              {match.awayTeam
+                .split(/\s+/)
+                .map((w) => w[0])
+                .join("")
+                .slice(0, 3)
+                .toUpperCase()}
             </div>
             <div className="truncate text-[11px] font-bold uppercase text-white">{match.awayTeam}</div>
           </div>
@@ -91,17 +116,22 @@ function MatchCard({ match }: { match: GbMatch }) {
 
         <p className="mt-4 text-center text-[13px] font-extrabold text-gold-light">
           {kickoff.dayLabel} · {kickoff.time}
-          {match.live ? " · FIRST HALF" : ""}
         </p>
 
-        <GbSecondaryButton
-          className="mt-3.5"
-          onClick={() =>
-            toast.info("Every seat has a screen view — arrive 30 minutes early for the big-screen tables.")
-          }
-        >
-          WATCH IT LIVE
-        </GbSecondaryButton>
+        {!finished && (
+          <GbSecondaryButton
+            className="mt-3.5"
+            onClick={() =>
+              onReserveMatch(addisDayKey(new Date(match.kickoff)), {
+                id: match.id,
+                label: `${match.homeTeam} vs ${match.awayTeam} · ${match.competition} — ${match.stage}`,
+              }, slotForMatch(match.kickoff))
+            }
+          >
+            <CalendarPlus className="h-4 w-4" aria-hidden />
+            BOOK A TABLE FOR THIS MATCH
+          </GbSecondaryButton>
+        )}
       </div>
     </div>
   );
@@ -113,7 +143,17 @@ const FEATURES = [
   { icon: Music2, label: "LIVE SESSIONS" },
 ];
 
-export function GbHome({ onReserve, onMenu }: { onReserve: () => void; onMenu: () => void }) {
+export function GbHome({
+  onReserve,
+  onFixtures,
+  onMenu,
+  onReserveMatch,
+}: {
+  onReserve: () => void;
+  onFixtures: () => void;
+  onMenu: () => void;
+  onReserveMatch: (date: string, match: DraftMatch, slot: Slot) => void;
+}) {
   const [events, setEvents] = useState<GbEvent[] | null>(null);
   const [matches, setMatches] = useState<GbMatch[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -194,10 +234,10 @@ export function GbHome({ onReserve, onMenu }: { onReserve: () => void; onMenu: (
           </button>
           <button
             type="button"
-            onClick={onMenu}
+            onClick={onFixtures}
             className="mt-2.5 w-full rounded-[10px] border border-gold/30 py-3.5 text-[13px] font-bold tracking-[0.05em] text-gold-light transition hover:bg-gold/10"
           >
-            SEE THE MENU
+            PL &amp; CHAMPIONS LEAGUE FIXTURES
           </button>
         </div>
       </section>
@@ -216,40 +256,59 @@ export function GbHome({ onReserve, onMenu }: { onReserve: () => void; onMenu: (
       </section>
 
       {/* ============ MATCHES ============ */}
-      <section id="gb-matches" className="scroll-mt-[76px] px-5 pt-7" aria-label="Tonight's matches">
+      <section id="gb-matches" className="scroll-mt-[76px] px-5 pt-7" aria-label="Upcoming matches">
         <GbSectionHeader
-          title="Tonight at Gura Bicha"
-          linkLabel={showAllMatches ? "SHOW LESS" : "VIEW ALL"}
-          onLink={() => setShowAllMatches((v) => !v)}
+          title="On The Big Screens"
+          linkLabel="FULL FIXTURES"
+          onLink={onFixtures}
         />
         {error && <GbErrorBox message={error} onRetry={retry} />}
         {!error && matches === null && <GbSkeleton className="h-[240px] w-full" />}
         {matches !== null && matches.length === 0 && !error && (
           <div className="rounded-[14px] border border-white/[0.08] bg-panel p-6 text-center text-[12px] text-white/50">
-            No matches on the schedule right now — check back soon.
+            No matches on the schedule right now — check the full fixtures calendar.
           </div>
         )}
-        {main && <MatchCard match={main} />}
+        {main && <MatchCard match={main} onReserveMatch={onReserveMatch} />}
         {showAllMatches && otherMatches.length > 0 && (
           <ul className="mt-3 space-y-2">
-            {otherMatches.map((m) => {
-              const k = formatKickoff(m.kickoff);
-              return (
-                <li
-                  key={m.id}
-                  className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-panel px-3.5 py-3"
-                >
-                  <span className="text-[12px] font-semibold text-white">
-                    {m.homeTeam} <span className="text-gold">v</span> {m.awayTeam}
-                  </span>
-                  <span className="text-right text-[10px] text-white/45">
-                    <span className="block text-white/70">{k.dayLabel} · {k.time}</span>
-                    {m.competition}
-                  </span>
-                </li>
-              );
-            })}
+            {otherMatches.slice(0, 6).map((m) => (
+              <li key={m.id}>
+                <FixtureRow
+                  match={m}
+                  action={
+                    m.status !== "FINISHED" ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onReserveMatch(
+                            addisDayKey(new Date(m.kickoff)),
+                            {
+                              id: m.id,
+                              label: `${m.homeTeam} vs ${m.awayTeam} · ${m.competition} — ${m.stage}`,
+                            },
+                            slotForMatch(m.kickoff)
+                          )
+                        }
+                        className="shrink-0 rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-[10px] font-extrabold tracking-wider text-gold transition hover:bg-gold/20"
+                      >
+                        BOOK
+                      </button>
+                    ) : undefined
+                  }
+                />
+              </li>
+            ))}
           </ul>
+        )}
+        {!showAllMatches && otherMatches.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAllMatches(true)}
+            className="mt-3 w-full rounded-[10px] border border-white/10 py-3 text-[11px] font-bold tracking-wider text-white/60 transition hover:border-gold/40 hover:text-gold"
+          >
+            SHOW MORE UPCOMING GAMES
+          </button>
         )}
       </section>
 

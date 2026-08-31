@@ -1,7 +1,8 @@
 "use client";
 
-import { CalendarCheck, Clock, Home, MapPin, Menu, Phone, Ticket, UtensilsCrossed } from "lucide-react";
+import { CalendarCheck, Clock, Home, MapPin, Menu, Phone, Share2, Ticket, Trophy, UtensilsCrossed } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -9,10 +10,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { shareViaTelegram, useTelegram, useTelegramBackInterceptor } from "@/lib/gb/telegram";
 import type { Screen } from "@/lib/gb/types";
 
 const NAV_LINKS: { screen: Screen; label: string; icon: typeof Home }[] = [
   { screen: "home", label: "Home", icon: Home },
+  { screen: "fixtures", label: "Fixtures & Events", icon: Trophy },
   { screen: "reserve", label: "Reserve a Table", icon: CalendarCheck },
   { screen: "menu", label: "Food & Drinks", icon: UtensilsCrossed },
   { screen: "reservations", label: "My Reservations", icon: Ticket },
@@ -26,10 +29,35 @@ export function GbHeader({
   onReserve: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const { user } = useTelegram();
+
+  // Telegram hardware back closes the sheet before navigating screens.
+  useTelegramBackInterceptor(
+    open
+      ? () => {
+          setOpen(false);
+          return true;
+        }
+      : null
+  );
 
   const go = (screen: Screen) => {
     setOpen(false);
     onNavigate(screen);
+  };
+
+  const shareApp = () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const sent = shareViaTelegram(
+      "Watch every PL & Champions League game at Gura Bicha Sports Bar 🏆",
+      url
+    );
+    if (!sent) {
+      void navigator.clipboard
+        ?.writeText(url)
+        .then(() => toast.success("App link copied to clipboard"))
+        .catch(() => toast.error("Could not copy the link"));
+    }
   };
 
   return (
@@ -49,13 +77,23 @@ export function GbHeader({
           <div className="mt-1 text-[8px] tracking-[0.35em] text-white/90">SPORTS BAR</div>
         </div>
 
+        {/* Telegram user chip (or reservations shortcut outside Telegram). */}
         <button
           type="button"
-          aria-label="My reservations"
+          aria-label={user ? `My reservations (${user.firstName})` : "My reservations"}
           onClick={() => go("reservations")}
-          className="grid h-10 w-10 place-items-center rounded-xl border border-gold/30 text-gold transition hover:bg-gold/10"
+          className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-gold/30 text-gold transition hover:bg-gold/10"
         >
-          <Ticket className="h-5 w-5" />
+          {user ? (
+            <span
+              className="grid h-full w-full place-items-center bg-gold/15 font-display text-[13px] font-bold text-gold"
+              title={user.username ? `@${user.username}` : user.firstName}
+            >
+              {user.firstName.charAt(0).toUpperCase()}
+            </span>
+          ) : (
+            <Ticket className="h-5 w-5" />
+          )}
         </button>
       </header>
 
@@ -69,6 +107,11 @@ export function GbHeader({
             <SheetDescription className="text-[9px] tracking-[0.35em] text-white/70">
               SPORTS BAR · ADDIS ABABA
             </SheetDescription>
+            {user && (
+              <SheetDescription className="pt-1 text-[11px] tracking-normal text-gold-light">
+                Hi, {user.firstName} {user.lastName ?? ""} — your table awaits.
+              </SheetDescription>
+            )}
           </SheetHeader>
 
           <nav aria-label="Main navigation" className="flex flex-col gap-1 p-3">
@@ -83,6 +126,17 @@ export function GbHeader({
                 {label}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                shareApp();
+              }}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] font-semibold text-white/80 transition hover:bg-gold/10 hover:text-gold"
+            >
+              <Share2 className="h-4 w-4 text-gold" aria-hidden />
+              Share this app
+            </button>
           </nav>
 
           <div className="border-t border-white/[0.06] p-5">

@@ -32,13 +32,13 @@ function NavItem({
 export function GbBottomNav({
   screen,
   onHome,
-  onMatches,
+  onFixtures,
   onReserve,
   onMenu,
 }: {
   screen: Screen;
   onHome: () => void;
-  onMatches: () => void;
+  onFixtures: () => void;
   onReserve: () => void;
   onMenu: () => void;
 }) {
@@ -46,10 +46,11 @@ export function GbBottomNav({
     <nav
       aria-label="Bottom navigation"
       className="sticky bottom-0 z-40 shrink-0 border-t border-white/[0.08] bg-[rgba(8,8,8,0.96)] backdrop-blur-md"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-4 items-end">
         <NavItem icon={Home} label="HOME" active={screen === "home"} onClick={onHome} />
-        <NavItem icon={Trophy} label="MATCHES" onClick={onMatches} />
+        <NavItem icon={Trophy} label="FIXTURES" active={screen === "fixtures"} onClick={onFixtures} />
         <button
           type="button"
           onClick={onReserve}

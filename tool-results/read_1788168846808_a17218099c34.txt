@@ -1,0 +1,787 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { CalendarPlus, Check, ChevronLeft, ChevronRight, Clock, MapPin, RotateCw, Share2, Users, X } from "lucide-react";
+     4→     4→import { motion } from "framer-motion";
+     5→     5→import { useCallback, useEffect, useState } from "react";
+     6→     6→import { toast } from "sonner";
+     7→     7→import { gbApi } from "@/lib/gb/api";
+     8→     8→import {
+     9→     9→  SLOT_LIST,
+    10→    10→  SLOT_META,
+    11→    11→  buildIcs,
+    12→    12→  formatDayLong,
+    13→    13→  formatDayShort,
+    14→    14→  parseISODate,
+    15→    15→  toISODate,
+    16→    16→  type GbReservation,
+    17→    17→  type GbTable,
+    18→    18→  type ReserveDraft,
+    19→    19→  type SavedDetails,
+    20→    20→} from "@/lib/gb/types";
+    21→    21→import {
+    22→    22→  GbGhostButton,
+    23→    23→  GbInfoCard,
+    24→    24→  GbPrimaryButton,
+    25→    25→  GbSecondaryButton,
+    26→    26→  GbSkeleton,
+    27→    27→} from "./gb-ui";
+    28→    28→
+    29→    29→type Step = "date" | "table" | "guests" | "details" | "done";
+    30→    30→
+    31→    31→const STEPS: { key: Exclude<Step, "done">; label: string }[] = [
+    32→    32→  { key: "date", label: "DATE" },
+    33→    33→  { key: "table", label: "TABLE" },
+    34→    34→  { key: "guests", label: "GUESTS" },
+    35→    35→  { key: "details", label: "DETAILS" },
+    36→    36→];
+    37→    37→
+    38→    38→const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    39→    39→
+    40→    40→const TABLE_POSITIONS: Record<string, string> = {
+    41→    41→  T1: "left-4 top-[80px]",
+    42→    42→  T2: "left-1/2 -translate-x-1/2 top-[80px]",
+    43→    43→  T3: "right-4 top-[80px]",
+    44→    44→  T4: "left-4 top-[155px]",
+    45→    45→  T5: "left-1/2 -translate-x-1/2 top-[155px]",
+    46→    46→  T6: "right-4 top-[155px]",
+    47→    47→};
+    48→    48→
+    49→    49→function downloadIcs(r: GbReservation) {
+    50→    50→  const blob = new Blob([buildIcs(r)], { type: "text/calendar;charset=utf-8" });
+    51→    51→  const url = URL.createObjectURL(blob);
+    52→    52→  const a = document.createElement("a");
+    53→    53→  a.href = url;
+    54→    54→  a.download = `gura-bicha-${r.code}.ics`;
+    55→    55→  document.body.appendChild(a);
+    56→    56→  a.click();
+    57→    57→  a.remove();
+    58→    58→  URL.revokeObjectURL(url);
+    59→    59→  toast.success("Calendar file downloaded");
+    60→    60→}
+    61→    61→
+    62→    62→async function shareReservation(r: GbReservation) {
+    63→    63→  const text = `See you at Gura Bicha! ${r.code} · Table ${r.tableCode} · ${formatDayLong(r.date)} · ${SLOT_META[r.slot].time}`;
+    64→    64→  if (typeof navigator !== "undefined" && navigator.share) {
+    65→    65→    try {
+    66→    66→      await navigator.share({ title: "Gura Bicha Sports Bar", text });
+    67→    67→      return;
+    68→    68→    } catch {
+    69→    69→      // user cancelled or share failed — fall through to clipboard
+    70→    70→    }
+    71→    71→  }
+    72→    72→  try {
+    73→    73→    await navigator.clipboard.writeText(text);
+    74→    74→    toast.success("Invitation copied to clipboard");
+    75→    75→  } catch {
+    76→    76→    toast.error("Could not share — please copy your reservation code manually.");
+    77→    77→  }
+    78→    78→}
+    79→    79→
+    80→    80→/* ============ CALENDAR (Thursdays = event nights) ============ */
+    81→    81→
+    82→    82→function Calendar({ value, onChange }: { value: string | null; onChange: (iso: string) => void }) {
+    83→    83→  const today = new Date();
+    84→    84→  today.setHours(0, 0, 0, 0);
+    85→    85→  const [view, setView] = useState(() => {
+    86→    86→    const base = value ? parseISODate(value) : new Date();
+    87→    87→    return new Date(base.getFullYear(), base.getMonth(), 1);
+    88→    88→  });
+    89→    89→
+    90→    90→  const year = view.getFullYear();
+    91→    91→  const month = view.getMonth();
+    92→    92→  const firstDow = new Date(year, month, 1).getDay();
+    93→    93→  const daysInMonth = new Date(year, month + 1, 0).getDate();
+    94→    94→  const cells: (string | null)[] = [
+    95→    95→    ...Array.from({ length: firstDow }, () => null),
+    96→    96→    ...Array.from({ length: daysInMonth }, (_, i) => toISODate(new Date(year, month, i + 1))),
+    97→    97→  ];
+    98→    98→  const canGoPrev = year > today.getFullYear() || (year === today.getFullYear() && month > today.getMonth());
+    99→    99→
+   100→   100→  return (
+   101→   101→    <div className="rounded-[14px] border border-white/[0.08] bg-panel p-4">
+   102→   102→      <div className="mb-5 flex items-center justify-between">
+   103→   103→        <button
+   104→   104→          type="button"
+   105→   105→          aria-label="Previous month"
+   106→   106→          disabled={!canGoPrev}
+   107→   107→          onClick={() => setView(new Date(year, month - 1, 1))}
+   108→   108→          className="text-gold transition hover:text-gold-light disabled:opacity-25"
+   109→   109→        >
+   110→   110→          <ChevronLeft className="h-6 w-6" />
+   111→   111→        </button>
+   112→   112→        <span className="font-display text-lg uppercase text-white" aria-live="polite">
+   113→   113→          {view.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+   114→   114→        </span>
+   115→   115→        <button
+   116→   116→          type="button"
+   117→   117→          aria-label="Next month"
+   118→   118→          onClick={() => setView(new Date(year, month + 1, 1))}
+   119→   119→          className="text-gold transition hover:text-gold-light"
+   120→   120→        >
+   121→   121→          <ChevronRight className="h-6 w-6" />
+   122→   122→        </button>
+   123→   123→      </div>
+   124→   124→
+   125→   125→      <div className="mb-2 grid grid-cols-7 gap-1.5 text-center">
+   126→   126→        {WEEKDAYS.map((w) => (
+   127→   127→          <span key={w} className="text-[9px] font-extrabold tracking-wider text-gold">
+   128→   128→            {w}
+   129→   129→          </span>
+   130→   130→        ))}
+   131→   131→      </div>
+   132→   132→
+   133→   133→      <div className="grid grid-cols-7 gap-1.5" role="grid" aria-label="Reservation calendar">
+   134→   134→        {cells.map((iso, i) => {
+   135→   135→          if (!iso) return <div key={`empty-${i}`} aria-hidden />;
+   136→   136→          const d = parseISODate(iso);
+   137→   137→          const past = d.getTime() < today.getTime();
+   138→   138→          const thu = d.getDay() === 4;
+   139→   139→          const selected = value === iso;
+   140→   140→          if (past || !thu) {
+   141→   141→            return (
+   142→   142→              <div
+   143→   143→                key={iso}
+   144→   144→                aria-hidden
+   145→   145→                className="grid h-9 cursor-not-allowed place-items-center rounded-full text-[11px] text-white/20"
+   146→   146→              >
+   147→   147→                {d.getDate()}
+   148→   148→              </div>
+   149→   149→            );
+   150→   150→          }
+   151→   151→          return (
+   152→   152→            <button
+   153→   153→              key={iso}
+   154→   154→              type="button"
+   155→   155→              onClick={() => onChange(iso)}
+   156→   156→              aria-pressed={selected}
+   157→   157→              aria-label={formatDayLong(iso)}
+   158→   158→              className={`grid h-9 place-items-center rounded-full border text-[11px] transition ${
+   159→   159→                selected
+   160→   160→                  ? "border-gold bg-gold font-extrabold text-[#050505]"
+   161→   161→                  : "border-gold/30 text-gold-light hover:bg-gold/10"
+   162→   162→              }`}
+   163→   163→            >
+   164→   164→              {d.getDate()}
+   165→   165→            </button>
+   166→   166→          );
+   167→   167→        })}
+   168→   168→      </div>
+   169→   169→
+   170→   170→      <p className="mt-3 text-center text-[10px] text-white/35">
+   171→   171→        Game &amp; Groove runs every Thursday — pick any highlighted date.
+   172→   172→      </p>
+   173→   173→    </div>
+   174→   174→  );
+   175→   175→}
+   176→   176→
+   177→   177→/* ============ STEP: DATE ============ */
+   178→   178→
+   179→   179→function DateStep({ draft, patch, onNext }: { draft: ReserveDraft; patch: (p: Partial<ReserveDraft>) => void; onNext: () => void }) {
+   180→   180→  return (
+   181→   181→    <div>
+   182→   182→      <Calendar value={draft.date} onChange={(iso) => patch({ date: iso })} />
+   183→   183→
+   184→   184→      <p className="mb-2 mt-5 text-[10px] font-bold tracking-[0.15em] text-white/45">SESSION</p>
+   185→   185→      <div className="grid grid-cols-2 gap-2.5">
+   186→   186→        {SLOT_LIST.map((slot) => {
+   187→   187→          const meta = SLOT_META[slot];
+   188→   188→          const active = draft.slot === slot;
+   189→   189→          return (
+   190→   190→            <button
+   191→   191→              key={slot}
+   192→   192→              type="button"
+   193→   193→              onClick={() => patch({ slot, table: null })}
+   194→   194→              aria-pressed={active}
+   195→   195→              className={`rounded-xl border px-3 py-3 text-left transition ${
+   196→   196→                active
+   197→   197→                  ? "border-gold bg-gold/10 text-gold"
+   198→   198→                  : "border-white/10 text-white/60 hover:border-gold/40"
+   199→   199→              }`}
+   200→   200→            >
+   201→   201→              <span className="block text-[9px] font-bold uppercase tracking-wider opacity-70">{meta.label}</span>
+   202→   202→              <span className="mt-0.5 block text-[13px] font-extrabold">{meta.time}</span>
+   203→   203→            </button>
+   204→   204→          );
+   205→   205→        })}
+   206→   206→      </div>
+   207→   207→
+   208→   208→      <div className="mt-5">
+   209→   209→        <GbInfoCard
+   210→   210→          label="SELECTED DATE"
+   211→   211→          value={draft.date ? formatDayLong(draft.date) : "Pick a Thursday"}
+   212→   212→          sub={draft.date ? `${SLOT_META[draft.slot].label} · ${SLOT_META[draft.slot].time}` : undefined}
+   213→   213→        />
+   214→   214→        <GbPrimaryButton disabled={!draft.date} onClick={onNext}>
+   215→   215→          CONTINUE
+   216→   216→        </GbPrimaryButton>
+   217→   217→      </div>
+   218→   218→    </div>
+   219→   219→  );
+   220→   220→}
+   221→   221→
+   222→   222→/* ============ STEP: TABLE ============ */
+   223→   223→
+   224→   224→function TableStep({
+   225→   225→  draft,
+   226→   226→  patch,
+   227→   227→  onNext,
+   228→   228→}: {
+   229→   229→  draft: ReserveDraft;
+   230→   230→  patch: (p: Partial<ReserveDraft>) => void;
+   231→   231→  onNext: () => void;
+   232→   232→}) {
+   233→   233→  const [data, setData] = useState<{ key: string; tables: GbTable[] } | null>(null);
+   234→   234→  const [refreshing, setRefreshing] = useState(false);
+   235→   235→  const [reloadKey, setReloadKey] = useState(0);
+   236→   236→  const dataKey = `${draft.date ?? ""}-${draft.slot}`;
+   237→   237→  const loading = !data || data.key !== dataKey;
+   238→   238→
+   239→   239→  useEffect(() => {
+   240→   240→    if (!draft.date) return;
+   241→   241→    let alive = true;
+   242→   242→    const key = `${draft.date}-${draft.slot}`;
+   243→   243→    gbApi.tables(draft.date, draft.slot).then(
+   244→   244→      (res) => {
+   245→   245→        if (!alive) return;
+   246→   246→        setData({ key, tables: res.tables });
+   247→   247→      },
+   248→   248→      (err: unknown) => {
+   249→   249→        if (!alive) return;
+   250→   250→        toast.error((err as Error).message);
+   251→   251→        setData({ key, tables: [] });
+   252→   252→      }
+   253→   253→    );
+   254→   254→    return () => {
+   255→   255→      alive = false;
+   256→   256→    };
+   257→   257→  }, [reloadKey, draft.date, draft.slot]);
+   258→   258→
+   259→   259→  const tables = loading ? null : (data?.tables ?? []);
+   260→   260→  const remaining = tables?.filter((t) => t.available).length ?? 0;
+   261→   261→  const selectedTaken = Boolean(
+   262→   262→    tables && draft.table && tables.some((t) => t.code === draft.table?.code && !t.available)
+   263→   263→  );
+   264→   264→
+   265→   265→  const refresh = () => {
+   266→   266→    setRefreshing(true);
+   267→   267→    setReloadKey((k) => k + 1);
+   268→   268→    window.setTimeout(() => setRefreshing(false), 900);
+   269→   269→  };
+   270→   270→
+   271→   271→  return (
+   272→   272→    <div>
+   273→   273→      <div className="mb-4 flex flex-wrap items-center gap-2">
+   274→   274→        {draft.date && (
+   275→   275→          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-black/50 px-3 py-1.5 text-[11px] font-semibold text-gold-light">
+   276→   276→            <MapPin className="h-3 w-3" aria-hidden />
+   277→   277→            {formatDayShort(draft.date).dow} {formatDayShort(draft.date).day} · {SLOT_META[draft.slot].short}
+   278→   278→          </span>
+   279→   279→        )}
+   280→   280→        {tables && (
+   281→   281→          <span className="text-[11px] text-white/45">
+   282→   282→            {remaining} of {tables.length} tables free
+   283→   283→          </span>
+   284→   284→        )}
+   285→   285→      </div>
+   286→   286→
+   287→   287→      {selectedTaken && (
+   288→   288→        <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-300">
+   289→   289→          Table {draft.table?.code} was just booked by someone else — please pick another table.
+   290→   290→        </div>
+   291→   291→      )}
+   292→   292→
+   293→   293→      {loading ? (
+   294→   294→        <GbSkeleton className="h-[310px] w-full" />
+   295→   295→      ) : (
+   296→   296→        <div className="relative mb-4 h-[310px] overflow-hidden rounded-2xl border border-gold/25 bg-[#0c0c0c]">
+   297→   297→          <div
+   298→   298→            aria-hidden
+   299→   299→            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgba(245,189,25,0.07),transparent_50%)]"
+   300→   300→          />
+   301→   301→          <div className="absolute left-1/2 top-4 w-[150px] -translate-x-1/2 rounded border border-white/15 py-1.5 text-center text-[9px] tracking-wider text-white/50">
+   302→   302→            SCREEN
+   303→   303→          </div>
+   304→   304→
+   305→   305→          {tables?.map((t) => {
+   306→   306→            const selected = draft.table?.code === t.code;
+   307→   307→            const base =
+   308→   308→              "absolute h-[42px] w-[55px] rounded-lg border text-[11px] font-extrabold transition grid place-items-center";
+   309→   309→            if (!t.available) {
+   310→   310→              return (
+   311→   311→                <button
+   312→   312→                  key={t.code}
+   313→   313→                  type="button"
+   314→   314→                  disabled
+   315→   315→                  aria-label={`Table ${t.code} is booked`}
+   316→   316→                  className={`${base} cursor-not-allowed border-white/[0.06] bg-white/[0.03] text-white/25 ${TABLE_POSITIONS[t.code] ?? ""}`}
+   317→   317→                >
+   318→   318→                  <span>
+   319→   319→                    <X className="mx-auto h-3 w-3 text-red-400/70" aria-hidden />
+   320→   320→                    <span className="mt-0.5 block text-[8px] tracking-wider">{t.code}</span>
+   321→   321→                  </span>
+   322→   322→                </button>
+   323→   323→              );
+   324→   324→            }
+   325→   325→            return (
+   326→   326→              <button
+   327→   327→                key={t.code}
+   328→   328→                type="button"
+   329→   329→                onClick={() => patch({ table: t })}
+   330→   330→                aria-pressed={selected}
+   331→   331→                aria-label={`Table ${t.code}, ${t.zone}, seats ${t.seats}`}
+   332→   332→                className={`${base} ${
+   333→   333→                  selected
+   334→   334→                    ? "border-gold bg-gold text-[#050505]"
+   335→   335→                    : "border-gold-dark bg-[#111] text-gold-light hover:border-gold-light"
+   336→   336→                } ${TABLE_POSITIONS[t.code] ?? ""}`}
+   337→   337→              >
+   338→   338→                {t.code}
+   339→   339→              </button>
+   340→   340→            );
+   341→   341→          })}
+   342→   342→
+   343→   343→          <div className="absolute bottom-5 left-1/2 flex h-[42px] w-[180px] -translate-x-1/2 items-center justify-center gap-1.5 rounded-lg border border-gold font-display text-[11px] font-bold tracking-wider text-gold">
+   344→   344→            STAGE
+   345→   345→          </div>
+   346→   346→
+   347→   347→          <button
+   348→   348→            type="button"
+   349→   349→            aria-label="Refresh availability"
+   350→   350→            onClick={refresh}
+   351→   351→            className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg border border-white/10 text-white/50 transition hover:text-gold"
+   352→   352→          >
+   353→   353→            <RotateCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+   354→   354→          </button>
+   355→   355→        </div>
+   356→   356→      )}
+   357→   357→
+   358→   358→      <div className="mb-4 flex items-center justify-center gap-4 text-[9px] font-bold tracking-wider text-white/40">
+   359→   359→        <span className="flex items-center gap-1.5">
+   360→   360→          <span className="h-2.5 w-2.5 rounded border border-gold-dark bg-[#111]" aria-hidden /> AVAILABLE
+   361→   361→        </span>
+   362→   362→        <span className="flex items-center gap-1.5">
+   363→   363→          <span className="h-2.5 w-2.5 rounded bg-gold" aria-hidden /> SELECTED
+   364→   364→        </span>
+   365→   365→        <span className="flex items-center gap-1.5">
+   366→   366→          <span className="h-2.5 w-2.5 rounded bg-white/10" aria-hidden /> BOOKED
+   367→   367→        </span>
+   368→   368→      </div>
+   369→   369→
+   370→   370→      <GbInfoCard
+   371→   371→        label="SELECTED TABLE"
+   372→   372→        value={draft.table ? draft.table.code : "Tap a table on the map"}
+   373→   373→        sub={draft.table ? `${draft.table.zone} · ${draft.table.seats}` : "Gold tables are still open"}
+   374→   374→      />
+   375→   375→
+   376→   376→      <GbPrimaryButton disabled={!draft.table || selectedTaken} onClick={onNext}>
+   377→   377→        CONTINUE
+   378→   378→      </GbPrimaryButton>
+   379→   379→    </div>
+   380→   380→  );
+   381→   381→}
+   382→   382→
+   383→   383→/* ============ STEP: GUESTS ============ */
+   384→   384→
+   385→   385→function GuestsStep({ draft, patch, onNext }: { draft: ReserveDraft; patch: (p: Partial<ReserveDraft>) => void; onNext: () => void }) {
+   386→   386→  const max = draft.table?.capacity ?? 12;
+   387→   387→  const setGuests = (n: number) => patch({ guests: Math.min(max, Math.max(1, n)) });
+   388→   388→
+   389→   389→  return (
+   390→   390→    <div>
+   391→   391→      <div className="flex h-[300px] items-center justify-center gap-7">
+   392→   392→        <button
+   393→   393→          type="button"
+   394→   394→          aria-label="Remove one guest"
+   395→   395→          disabled={draft.guests <= 1}
+   396→   396→          onClick={() => setGuests(draft.guests - 1)}
+   397→   397→          className="grid h-12 w-12 place-items-center rounded-full border border-gold-dark text-2xl text-gold transition hover:bg-gold/10 disabled:opacity-25"
+   398→   398→        >
+   399→   399→          −
+   400→   400→        </button>
+   401→   401→        <div className="text-center" aria-live="polite">
+   402→   402→          <strong className="block font-display text-[58px] leading-none text-white">{draft.guests}</strong>
+   403→   403→          <span className="mt-1 block text-[11px] tracking-[0.2em] text-white/45">PEOPLE</span>
+   404→   404→        </div>
+   405→   405→        <button
+   406→   406→          type="button"
+   407→   407→          aria-label="Add one guest"
+   408→   408→          disabled={draft.guests >= max}
+   409→   409→          onClick={() => setGuests(draft.guests + 1)}
+   410→   410→          className="grid h-12 w-12 place-items-center rounded-full border border-gold-dark text-2xl text-gold transition hover:bg-gold/10 disabled:opacity-25"
+   411→   411→        >
+   412→   412→          +
+   413→   413→        </button>
+   414→   414→      </div>
+   415→   415→
+   416→   416→      <div className="mb-5 flex justify-center gap-2">
+   417→   417→        {[2, 4, 6, 8].map((n) => (
+   418→   418→          <button
+   419→   419→            key={n}
+   420→   420→            type="button"
+   421→   421→            onClick={() => setGuests(n)}
+   422→   422→            className={`rounded-full border px-3.5 py-1.5 text-[11px] font-bold transition ${
+   423→   423→              draft.guests === n
+   424→   424→                ? "border-gold bg-gold/15 text-gold"
+   425→   425→                : "border-white/10 text-white/50 hover:border-gold/40"
+   426→   426→            }`}
+   427→   427→          >
+   428→   428→            {n > max ? `${max} max` : n}
+   429→   429→          </button>
+   430→   430→        ))}
+   431→   431→      </div>
+   432→   432→
+   433→   433→      <GbInfoCard
+   434→   434→        label="PARTY SIZE"
+   435→   435→        value={`${draft.guests} ${draft.guests === 1 ? "Guest" : "Guests"}`}
+   436→   436→        sub={
+   437→   437→          draft.table
+   438→   438→            ? `Table ${draft.table.code} fits up to ${max} guests`
+   439→   439→            : "Select a table to see its capacity"
+   440→   440→        }
+   441→   441→      />
+   442→   442→
+   443→   443→      <GbPrimaryButton onClick={onNext}>CONTINUE</GbPrimaryButton>
+   444→   444→    </div>
+   445→   445→  );
+   446→   446→}
+   447→   447→
+   448→   448→/* ============ STEP: DETAILS ============ */
+   449→   449→
+   450→   450→function DetailsStep({
+   451→   451→  draft,
+   452→   452→  savedDetails,
+   453→   453→  onSaveDetails,
+   454→   454→  onTableConflict,
+   455→   455→  onDone,
+   456→   456→}: {
+   457→   457→  draft: ReserveDraft;
+   458→   458→  savedDetails: SavedDetails | null;
+   459→   459→  onSaveDetails: (d: SavedDetails | null) => void;
+   460→   460→  onTableConflict: () => void;
+   461→   461→  onDone: (r: GbReservation) => void;
+   462→   462→}) {
+   463→   463→  const [name, setName] = useState(savedDetails?.name ?? "");
+   464→   464→  const [phone, setPhone] = useState(savedDetails?.phone ?? "");
+   465→   465→  const [email, setEmail] = useState(savedDetails?.email ?? "");
+   466→   466→  const [request, setRequest] = useState("");
+   467→   467→  const [save, setSave] = useState(Boolean(savedDetails));
+   468→   468→  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+   469→   469→  const [submitting, setSubmitting] = useState(false);
+   470→   470→
+   471→   471→  const submit = async () => {
+   472→   472→    const nextErrors: { name?: string; phone?: string } = {};
+   473→   473→    if (name.trim().length < 2) nextErrors.name = "Please enter your full name.";
+   474→   474→    if (phone.replace(/\D/g, "").length < 7) nextErrors.phone = "Enter a valid phone number (e.g. +251 911 234 567).";
+   475→   475→    setErrors(nextErrors);
+   476→   476→    if (Object.keys(nextErrors).length > 0 || !draft.date || !draft.table) return;
+   477→   477→
+   478→   478→    setSubmitting(true);
+   479→   479→    try {
+   480→   480→      const res = await gbApi.createReservation({
+   481→   481→        date: draft.date,
+   482→   482→        slot: draft.slot,
+   483→   483→        tableCode: draft.table.code,
+   484→   484→        guests: draft.guests,
+   485→   485→        name: name.trim(),
+   486→   486→        phone: phone.trim(),
+   487→   487→        email: email.trim() || undefined,
+   488→   488→        request: request.trim() || undefined,
+   489→   489→      });
+   490→   490→      if (save) {
+   491→   491→        const details: SavedDetails = { name: name.trim(), phone: phone.trim(), email: email.trim() };
+   492→   492→        onSaveDetails(details);
+   493→   493→        try {
+   494→   494→          localStorage.setItem("gb:details", JSON.stringify(details));
+   495→   495→        } catch {
+   496→   496→          // storage unavailable — ignore
+   497→   497→        }
+   498→   498→      } else {
+   499→   499→        onSaveDetails(null);
+   500→   500→        try {
+   501→   501→          localStorage.removeItem("gb:details");
+   502→   502→        } catch {
+   503→   503→          // ignore
+   504→   504→        }
+   505→   505→      }
+   506→   506→      toast.success(`Reservation ${res.reservation.code} confirmed`);
+   507→   507→      onDone(res.reservation);
+   508→   508→    } catch (err) {
+   509→   509→      const message = (err as Error).message;
+   510→   510→      toast.error(message);
+   511→   511→      if (message.toLowerCase().includes("no longer available")) {
+   512→   512→        onTableConflict();
+   513→   513→      }
+   514→   514→    } finally {
+   515→   515→      setSubmitting(false);
+   516→   516→    }
+   517→   517→  };
+   518→   518→
+   519→   519→  return (
+   520→   520→    <form
+   521→   521→      onSubmit={(e) => {
+   522→   522→        e.preventDefault();
+   523→   523→        void submit();
+   524→   524→      }}
+   525→   525→    >
+   526→   526→      <div className="mb-5 flex flex-wrap gap-2">
+   527→   527→        {draft.date && (
+   528→   528→          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-black/50 px-3 py-1.5 text-[11px] font-semibold text-gold-light">
+   529→   529→            <Clock className="h-3 w-3" aria-hidden />
+   530→   530→            {formatDayLong(draft.date).replace(/,/, " ·")} · {SLOT_META[draft.slot].short}
+   531→   531→          </span>
+   532→   532→        )}
+   533→   533→        {draft.table && (
+   534→   534→          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-black/50 px-3 py-1.5 text-[11px] font-semibold text-gold-light">
+   535→   535→            <Users className="h-3 w-3" aria-hidden />
+   536→   536→            {draft.table.code} · {draft.guests} guests
+   537→   537→          </span>
+   538→   538→        )}
+   539→   539→      </div>
+   540→   540→
+   541→   541→      <div className="mb-4">
+   542→   542→        <label htmlFor="gb-name" className="mb-1.5 block text-[10px] tracking-[0.15em] text-white/45">
+   543→   543→          FULL NAME
+   544→   544→        </label>
+   545→   545→        <input
+   546→   546→          id="gb-name"
+   547→   547→          type="text"
+   548→   548→          autoComplete="name"
+   549→   549→          value={name}
+   550→   550→          onChange={(e) => setName(e.target.value)}
+   551→   551→          placeholder="Your name"
+   552→   552→          className="w-full rounded-[10px] border border-gold/25 bg-panel px-3.5 py-3.5 text-[13px] text-white outline-none transition placeholder:text-white/25 focus:border-gold"
+   553→   553→        />
+   554→   554→        {errors.name && <p className="mt-1.5 text-[11px] text-red-400">{errors.name}</p>}
+   555→   555→      </div>
+   556→   556→
+   557→   557→      <div className="mb-4">
+   558→   558→        <label htmlFor="gb-phone" className="mb-1.5 block text-[10px] tracking-[0.15em] text-white/45">
+   559→   559→          PHONE NUMBER
+   560→   560→        </label>
+   561→   561→        <input
+   562→   562→          id="gb-phone"
+   563→   563→          type="tel"
+   564→   564→          autoComplete="tel"
+   565→   565→          value={phone}
+   566→   566→          onChange={(e) => setPhone(e.target.value)}
+   567→   567→          placeholder="+251 ..."
+   568→   568→          className="w-full rounded-[10px] border border-gold/25 bg-panel px-3.5 py-3.5 text-[13px] text-white outline-none transition placeholder:text-white/25 focus:border-gold"
+   569→   569→        />
+   570→   570→        {errors.phone && <p className="mt-1.5 text-[11px] text-red-400">{errors.phone}</p>}
+   571→   571→      </div>
+   572→   572→
+   573→   573→      <div className="mb-4">
+   574→   574→        <label htmlFor="gb-email" className="mb-1.5 block text-[10px] tracking-[0.15em] text-white/45">
+   575→   575→          EMAIL — OPTIONAL
+   576→   576→        </label>
+   577→   577→        <input
+   578→   578→          id="gb-email"
+   579→   579→          type="email"
+   580→   580→          autoComplete="email"
+   581→   581→          value={email}
+   582→   582→          onChange={(e) => setEmail(e.target.value)}
+   583→   583→          placeholder="you@example.com"
+   584→   584→          className="w-full rounded-[10px] border border-gold/25 bg-panel px-3.5 py-3.5 text-[13px] text-white outline-none transition placeholder:text-white/25 focus:border-gold"
+   585→   585→        />
+   586→   586→      </div>
+   587→   587→
+   588→   588→      <div className="mb-5">
+   589→   589→        <label htmlFor="gb-request" className="mb-1.5 block text-[10px] tracking-[0.15em] text-white/45">
+   590→   590→          SPECIAL REQUEST — OPTIONAL
+   591→   591→        </label>
+   592→   592→        <input
+   593→   593→          id="gb-request"
+   594→   594→          type="text"
+   595→   595→          value={request}
+   596→   596→          onChange={(e) => setRequest(e.target.value)}
+   597→   597→          placeholder="Birthday cake, quiet corner, etc."
+   598→   598→          className="w-full rounded-[10px] border border-gold/25 bg-panel px-3.5 py-3.5 text-[13px] text-white outline-none transition placeholder:text-white/25 focus:border-gold"
+   599→   599→        />
+   600→   600→      </div>
+   601→   601→
+   602→   602→      <label className="mb-5 flex cursor-pointer items-center gap-2.5 text-[11px] text-white/60">
+   603→   603→        <input
+   604→   604→          type="checkbox"
+   605→   605→          checked={save}
+   606→   606→          onChange={(e) => setSave(e.target.checked)}
+   607→   607→          className="h-4 w-4 accent-[#f5bd19]"
+   608→   608→        />
+   609→   609→        Save my details for next time
+   610→   610→      </label>
+   611→   611→
+   612→   612→      <GbPrimaryButton type="submit" loading={submitting}>
+   613→   613→        CONFIRM RESERVATION
+   614→   614→      </GbPrimaryButton>
+   615→   615→    </form>
+   616→   616→  );
+   617→   617→}
+   618→   618→
+   619→   619→/* ============ STEP: DONE ============ */
+   620→   620→
+   621→   621→function DoneStep({
+   622→   622→  reservation,
+   623→   623→  onHome,
+   624→   624→  onViewReservations,
+   625→   625→}: {
+   626→   626→  reservation: GbReservation;
+   627→   627→  onHome: () => void;
+   628→   628→  onViewReservations: () => void;
+   629→   629→}) {
+   630→   630→  return (
+   631→   631→    <motion.div
+   632→   632→      initial={{ opacity: 0, scale: 0.96 }}
+   633→   633→      animate={{ opacity: 1, scale: 1 }}
+   634→   634→      transition={{ type: "spring", stiffness: 260, damping: 22 }}
+   635→   635→      className="pt-8 text-center"
+   636→   636→    >
+   637→   637→      <div className="mx-auto mb-5 grid h-[75px] w-[75px] place-items-center rounded-full border border-gold bg-gold/10">
+   638→   638→        <Check className="h-9 w-9 text-gold" strokeWidth={2.5} aria-hidden />
+   639→   639→      </div>
+   640→   640→      <h1 className="font-display text-4xl uppercase text-gold">You&apos;re in!</h1>
+   641→   641→      <p className="font-script mt-1 text-[19px] text-white">Game &amp; Groove</p>
+   642→   642→
+   643→   643→      <div className="mt-7 border-y border-gold/25 py-4 text-left">
+   644→   644→        {[
+   645→   645→          ["Date", formatDayLong(reservation.date)],
+   646→   646→          ["Time", SLOT_META[reservation.slot].time],
+   647→   647→          ["Guests", `${reservation.guests} ${reservation.guests === 1 ? "Person" : "People"}`],
+   648→   648→          ["Table", reservation.tableCode],
+   649→   649→          ["Name", reservation.name],
+   650→   650→        ].map(([k, v]) => (
+   651→   651→          <div key={k} className="flex items-center justify-between py-1.5 text-[12px]">
+   652→   652→            <span className="text-white/45">{k}</span>
+   653→   653→            <span className="font-semibold text-white">{v}</span>
+   654→   654→          </div>
+   655→   655→        ))}
+   656→   656→      </div>
+   657→   657→
+   658→   658→      <p className="mt-5 text-[11px] tracking-[0.2em] text-white/45">RESERVATION #</p>
+   659→   659→      <strong className="mt-1 block font-display text-2xl tracking-wider text-gold">{reservation.code}</strong>
+   660→   660→      <p className="mt-2 text-[11px] text-white/40">
+   661→   661→        Show this code at the door. Need changes? Call +251 911 234 567.
+   662→   662→      </p>
+   663→   663→
+   664→   664→      <div className="mt-7 space-y-2.5">
+   665→   665→        <GbPrimaryButton onClick={() => downloadIcs(reservation)}>
+   666→   666→          <CalendarPlus className="h-4 w-4" aria-hidden />
+   667→   667→          ADD TO CALENDAR
+   668→   668→        </GbPrimaryButton>
+   669→   669→        <GbSecondaryButton onClick={() => void shareReservation(reservation)}>
+   670→   670→          <Share2 className="h-4 w-4" aria-hidden />
+   671→   671→          SHARE WITH FRIENDS
+   672→   672→        </GbSecondaryButton>
+   673→   673→        <GbSecondaryButton onClick={onViewReservations}>VIEW MY RESERVATIONS</GbSecondaryButton>
+   674→   674→        <GbGhostButton onClick={onHome}>Back to home</GbGhostButton>
+   675→   675→      </div>
+   676→   676→    </motion.div>
+   677→   677→  );
+   678→   678→}
+   679→   679→
+   680→   680→/* ============ FLOW CONTAINER ============ */
+   681→   681→
+   682→   682→export function GbReserve({
+   683→   683→  draft,
+   684→   684→  onChange,
+   685→   685→  savedDetails,
+   686→   686→  onSaveDetails,
+   687→   687→  onHome,
+   688→   688→  onViewReservations,
+   689→   689→}: {
+   690→   690→  draft: ReserveDraft;
+   691→   691→  onChange: (d: ReserveDraft) => void;
+   692→   692→  savedDetails: SavedDetails | null;
+   693→   693→  onSaveDetails: (d: SavedDetails | null) => void;
+   694→   694→  onHome: () => void;
+   695→   695→  onViewReservations: () => void;
+   696→   696→}) {
+   697→   697→  const [step, setStep] = useState<Step>("date");
+   698→   698→  const patch = (p: Partial<ReserveDraft>) => onChange({ ...draft, ...p });
+   699→   699→  const stepIndex = STEPS.findIndex((s) => s.key === step);
+   700→   700→
+   701→   701→  const back = () => {
+   702→   702→    if (step === "date") onHome();
+   703→   703→    else if (step === "table") setStep("date");
+   704→   704→    else if (step === "guests") setStep("table");
+   705→   705→    else if (step === "details") setStep("guests");
+   706→   706→  };
+   707→   707→
+   708→   708→  const titles: Record<Step, string> = {
+   709→   709→    date: "Choose Date",
+   710→   710→    table: "Choose Your Table",
+   711→   711→    guests: "How Many Guests?",
+   712→   712→    details: "Your Details",
+   713→   713→    done: "Confirmed",
+   714→   714→  };
+   715→   715→
+   716→   716→  return (
+   717→   717→    <div className="px-5 pb-9 pt-6">
+   718→   718→      {step !== "done" && (
+   719→   719→        <>
+   720→   720→          <div className="mb-6 flex items-center gap-4">
+   721→   721→            <button
+   722→   722→              type="button"
+   723→   723→              aria-label="Go back"
+   724→   724→              onClick={back}
+   725→   725→              className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 text-white transition hover:border-gold/40 hover:text-gold"
+   726→   726→            >
+   727→   727→              <ChevronLeft className="h-5 w-5" />
+   728→   728→            </button>
+   729→   729→            <h1 className="font-display text-2xl uppercase text-white">{titles[step]}</h1>
+   730→   730→          </div>
+   731→   731→
+   732→   732→          <div className="mb-7" aria-hidden>
+   733→   733→            <div className="flex gap-1.5">
+   734→   734→              {STEPS.map((s, i) => (
+   735→   735→                <span
+   736→   736→                  key={s.key}
+   737→   737→                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+   738→   738→                    i <= stepIndex ? "bg-gold" : "bg-white/15"
+   739→   739→                  }`}
+   740→   740→                />
+   741→   741→              ))}
+   742→   742→            </div>
+   743→   743→            <p className="mt-2 text-[10px] font-bold tracking-[0.2em] text-white/40">
+   744→   744→              STEP {stepIndex + 1} OF 4 · {STEPS[stepIndex].label}
+   745→   745→            </p>
+   746→   746→          </div>
+   747→   747→        </>
+   748→   748→      )}
+   749→   749→
+   750→   750→      {step === "date" && <DateStep draft={draft} patch={patch} onNext={() => setStep("table")} />}
+   751→   751→
+   752→   752→      {step === "table" && <TableStep draft={draft} patch={patch} onNext={() => setStep("guests")} />}
+   753→   753→
+   754→   754→      {step === "guests" && <GuestsStep draft={draft} patch={patch} onNext={() => setStep("details")} />}
+   755→   755→
+   756→   756→      {step === "details" && (
+   757→   757→        <DetailsStep
+   758→   758→          draft={draft}
+   759→   759→          savedDetails={savedDetails}
+   760→   760→          onSaveDetails={onSaveDetails}
+   761→   761→          onTableConflict={() => {
+   762→   762→            patch({ table: null });
+   763→   763→            setStep("table");
+   764→   764→          }}
+   765→   765→          onDone={(r) => {
+   766→   766→            patch({ reservation: r });
+   767→   767→            setStep("done");
+   768→   768→          }}
+   769→   769→        />
+   770→   770→      )}
+   771→   771→
+   772→   772→      {step === "done" && draft.reservation && (
+   773→   773→        <DoneStep reservation={draft.reservation} onHome={onHome} onViewReservations={onViewReservations} />
+   774→   774→      )}
+   775→   775→
+   776→   776→      {step === "done" && !draft.reservation && (
+   777→   777→        <div className="pt-8 text-center">
+   778→   778→          <p className="text-[13px] text-white/60">Something went wrong — let&apos;s start again.</p>
+   779→   779→          <GbSecondaryButton className="mt-4" onClick={onHome}>
+   780→   780→            BACK TO HOME
+   781→   781→          </GbSecondaryButton>
+   782→   782→        </div>
+   783→   783→      )}
+   784→   784→    </div>
+   785→   785→  );
+   786→   786→}
+   787→   787→

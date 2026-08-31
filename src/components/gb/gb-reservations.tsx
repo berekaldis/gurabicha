@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { gbApi } from "@/lib/gb/api";
+import { useTelegram } from "@/lib/gb/telegram";
 import { SLOT_META, formatDayLong, type GbReservation, type SavedDetails } from "@/lib/gb/types";
 import { GbErrorBox, GbSkeleton } from "./gb-ui";
 
@@ -56,6 +57,12 @@ function ReservationCard({
             {r.tableCode} · {r.guests} guests
           </dd>
         </div>
+        {r.matchLabel && (
+          <div className="flex justify-between gap-4">
+            <dt className="shrink-0 text-white/45">Match</dt>
+            <dd className="text-right font-semibold text-gold-light">{r.matchLabel}</dd>
+          </div>
+        )}
         <div className="flex justify-between">
           <dt className="text-white/45">Name</dt>
           <dd className="font-semibold text-white">{r.name}</dd>
@@ -82,8 +89,10 @@ export function GbReservations({
   savedDetails: SavedDetails | null;
   onReserve: () => void;
 }) {
+  const { user: tgUser } = useTelegram();
   const [phone, setPhone] = useState("");
   const [searchedPhone, setSearchedPhone] = useState<string | null>(null);
+  const [viaTelegram, setViaTelegram] = useState(false);
   const [reservations, setReservations] = useState<GbReservation[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,6 +108,7 @@ export function GbReservations({
     setLoading(true);
     setError(null);
     setSearchedPhone(rawPhone.trim());
+    setViaTelegram(false);
     try {
       const res = await gbApi.reservationsByPhone(rawPhone.trim());
       setReservations(res.reservations);
@@ -110,13 +120,41 @@ export function GbReservations({
     }
   }, []);
 
+  // Inside Telegram, look up bookings bound to the Mini App user automatically.
+  useEffect(() => {
+    if (!tgUser) return;
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    setViaTelegram(true);
+    gbApi
+      .reservationsMine()
+      .then(
+        (res) => {
+          if (!alive) return;
+          setReservations(res.reservations);
+          setLoading(false);
+        },
+        (err: unknown) => {
+          if (!alive) return;
+          setError((err as Error).message);
+          setReservations(null);
+          setLoading(false);
+        }
+      );
+    return () => {
+      alive = false;
+    };
+  }, [tgUser]);
+
   // Pre-fill and auto-search when details were saved on a previous booking.
   useEffect(() => {
+    if (tgUser) return;
     if (savedDetails?.phone) {
       setPhone(savedDetails.phone);
       void lookup(savedDetails.phone);
     }
-  }, [savedDetails, lookup]);
+  }, [savedDetails, lookup, tgUser]);
 
   const confirmCancel = async () => {
     if (!cancelTarget) return;
@@ -138,7 +176,27 @@ export function GbReservations({
   return (
     <div className="px-5 pb-9 pt-6">
       <h1 className="font-display text-2xl uppercase text-white">My Reservations</h1>
-      <p className="mt-1 text-[12px] text-white/45">Look up your bookings with the phone number you reserved with.</p>
+      <p className="mt-1 text-[12px] text-white/45">
+        {tgUser
+          ? `Showing bookings for your Telegram account${tgUser.username ? ` (@${tgUser.username})` : ""}. You can also look up by phone.`
+          : "Look up your bookings with the phone number you reserved with."}
+      </p>
+
+      {tgUser && (
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-gold/30 bg-gold/[0.06] p-3.5">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold font-display text-sm font-bold text-[#050505]">
+            {tgUser.firstName.charAt(0).toUpperCase()}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-bold text-white">
+              {tgUser.firstName} {tgUser.lastName ?? ""}
+            </p>
+            <p className="text-[11px] text-white/45">
+              {tgUser.username ? `@${tgUser.username}` : "Telegram user"}
+            </p>
+          </div>
+        </div>
+      )}
 
       <form
         className="mt-4 flex gap-2"
@@ -186,7 +244,13 @@ export function GbReservations({
         {reservations !== null && reservations.length === 0 && (
           <div className="rounded-xl border border-white/[0.08] bg-panel p-8 text-center">
             <p className="text-[12px] text-white/50">
-              No reservations found for <span className="text-white">{searchedPhone}</span>.
+              {viaTelegram
+                ? "No bookings on your Telegram account yet."
+                : (
+                  <>
+                    No reservations found for <span className="text-white">{searchedPhone}</span>.
+                  </>
+                )}
             </p>
             <button
               type="button"
