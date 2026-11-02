@@ -1,0 +1,28 @@
+{
+  "name": "Gura Bicha Sports Bar & Acoustic Lounge",
+  "short_name": "Gura Bicha",
+  "description": "Addis Ababa's premier sports bar and Saturday acoustic lounge in Mexico, Chamber of Commerce Building.",
+  "start_url": "/Gurabicha/public/",
+  "display": "standalone",
+  "background_color": "#060709",
+  "theme_color": "#060709",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
