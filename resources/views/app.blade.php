@@ -487,47 +487,6 @@
     <!-- MAIN VIEW CONTAINER -->
     <main class="w-full max-w-xl mx-auto md:max-w-4xl px-2.5 sm:px-4 pt-2.5 sm:pt-4 main-container-safe overflow-x-hidden space-y-4 sm:space-y-5">
 
-        <!-- ========================================================== -->
-        <!-- VIP QUICK CONTROLS BAR: GUARANTEED ZERO-OVERLAP VISIBILITY -->
-        <!-- Instant tap for Language (English/አማርኛ) and Theme (VIP/Day) -->
-        <!-- ========================================================== -->
-        <div class="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-dark-card to-amber-500/10 border border-gold/30 shadow-lg backdrop-blur-md flex items-center justify-between gap-2">
-            <div class="flex items-center space-x-2 min-w-0">
-                <div class="w-7 h-7 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center text-sm shadow-inner shrink-0 text-gold">
-                    ✨
-                </div>
-                <div class="min-w-0">
-                    <span class="font-display font-bold text-xs uppercase tracking-wider text-gold block truncate">
-                        GURA BICHA VIP LOUNGE
-                    </span>
-                    <span class="text-[10px] text-zinc-400 block truncate" x-text="lang === 'en' ? 'Addis Ababa · Mexico Chamber Bldg' : 'አዲስ አበባ · ሜክሲኮ ንግድ ምክር ቤት'">
-                        Addis Ababa · Mexico Chamber Bldg
-                    </span>
-                </div>
-            </div>
-
-            <!-- DUAL QUICK SWITCHERS -->
-            <div class="flex items-center space-x-1.5 shrink-0">
-                <!-- Big Language Pill -->
-                <button type="button" @click="toggleLang()" class="px-2.5 py-1 rounded-xl bg-dark-panel border border-gold/40 hover:border-gold text-gold text-xs font-bold transition flex items-center space-x-1 active:scale-95 shadow-sm">
-                    <span>🌐</span>
-                    <span x-text="lang === 'en' ? 'English' : 'አማርኛ'"></span>
-                </button>
-
-                <!-- Big Bright/Dark Mode Pill -->
-                <button type="button" @click="toggleTheme()" class="px-2.5 py-1 rounded-xl bg-dark-panel border border-dark-border hover:border-gold text-zinc-200 text-xs font-bold transition flex items-center space-x-1 active:scale-95 shadow-sm">
-                    <span x-show="theme === 'dark'" class="flex items-center space-x-1 text-gold">
-                        <span>🌙</span>
-                        <span class="text-[11px] font-semibold">VIP Dark</span>
-                    </span>
-                    <span x-show="theme === 'light'" class="flex items-center space-x-1 text-amber-700">
-                        <span>☀️</span>
-                        <span class="text-[11px] font-semibold">Bright</span>
-                    </span>
-                </button>
-            </div>
-        </div>
-
         <!-- ========================================== -->
         <!-- SCREEN 1: HOME                             -->
         <!-- ========================================== -->
@@ -569,57 +528,22 @@
                 </div>
             </div>
 
-            <!-- FAN CLUB CALLOUT PROMO CARD (CLEAN & SIMPLE) -->
-            <div @click="setScreen('fanclub')" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-dark-card to-dark-card border border-emerald-600/40 flex items-center justify-between cursor-pointer card-hover-lift">
-                <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-900/60 border border-emerald-500/50 flex items-center justify-center text-lg shrink-0 shadow-inner">
-                        ⚽
-                    </div>
-                    <div class="min-w-0">
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block" x-text="t('fan_callout_tag')">FAN CLUB ALERTS</span>
-                        <h3 class="font-bold text-xs sm:text-sm text-white truncate" x-text="t('fan_callout_title')">Support Arsenal, Chelsea, Man Utd or Real Madrid?</h3>
-                        <p class="text-[11px] text-zinc-300 truncate" x-text="t('fan_callout_desc')">Matchday alerts & live scores on Telegram.</p>
-                    </div>
-                </div>
-                <span class="text-emerald-400 font-bold text-xs shrink-0 flex items-center space-x-1 pl-2">
-                    <span x-text="t('fan_callout_btn')">Join</span>
-                    <span>→</span>
-                </span>
-            </div>
-
-            <!-- LIVE ACOUSTIC HIGHLIGHT STRIP (CLEAN & SIMPLE) -->
-            <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-950/30 via-dark-card to-dark-card border border-gold/30 flex items-center justify-between gap-3 card-hover-lift">
-                <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-lg text-gold shrink-0">
-                        🎸
-                    </div>
-                    <div class="min-w-0">
-                        <span class="text-[10px] font-bold text-gold uppercase tracking-wider block" x-text="t('sat_strip_every')">Live Acoustic Sessions</span>
-                        <h3 class="font-bold text-xs sm:text-sm text-white truncate" x-text="t('sat_strip_title')">7:00 PM – 11:30 PM</h3>
-                    </div>
-                </div>
-                <button @click="openReservationWizard()" class="px-3.5 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs transition shadow-md shadow-gold/20 flex items-center space-x-1 shrink-0">
-                    <span x-text="t('sat_strip_btn')">Reserve</span>
-                    <span>→</span>
-                </button>
-            </div>
-
-            <!-- HIGHLIGHTED LIVE / UPCOMING MATCH CARD WITH CLUB LOGOS -->
-            <div class="rounded-2xl border border-dark-border bg-dark-card p-4 sm:p-5 relative overflow-hidden card-hover-lift" x-show="featuredMatch">
+            <!-- CURRENT FIXTURES: HIGHLIGHTED MATCH CARD -->
+            <div class="rounded-2xl border border-gold/30 bg-dark-card p-4 sm:p-5 relative overflow-hidden card-hover-lift shadow-xl" x-show="featuredMatch">
                 <div class="flex items-center justify-between border-b border-dark-border/60 pb-3 mb-3">
                     <div class="flex items-center space-x-2 min-w-0">
-                        <span class="w-2 h-2 rounded-full shrink-0" :class="isMatchLive(featuredMatch) ? 'bg-red-500 animate-ping' : 'bg-gold'"></span>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-gold truncate" x-text="isMatchLive(featuredMatch) ? 'LIVE MATCH' : 'FEATURED MATCH'"></span>
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="isMatchLive(featuredMatch) ? 'bg-red-500 animate-ping' : 'bg-gold'"></span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-gold truncate" x-text="isMatchLive(featuredMatch) ? '🔴 LIVE MATCH' : 'FEATURED MATCH'"></span>
                         <span class="text-xs text-zinc-400">·</span>
                         <span class="text-xs text-zinc-300 font-medium truncate" x-text="featuredMatch ? (featuredMatch.competition + ' · ' + featuredMatch.stage) : ''"></span>
                     </div>
-                    <span class="text-xs px-2.5 py-0.5 rounded-lg bg-dark-panel text-zinc-200 border border-dark-border font-medium shrink-0 ml-2" x-text="featuredMatch ? formatKickoffTime(featuredMatch.kickoff) : ''"></span>
+                    <span class="text-xs px-2.5 py-0.5 rounded-lg bg-dark-panel text-gold border border-gold/40 font-mono font-bold shrink-0 ml-2" x-text="featuredMatch ? formatKickoffTime(featuredMatch.kickoff) : ''"></span>
                 </div>
 
                 <div class="flex items-center justify-between py-2" x-show="featuredMatch">
                     <!-- Home Team with Crest -->
-                    <div class="flex-1 min-w-0 flex flex-col items-center text-center">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-dark-panel border border-gold/30 flex items-center justify-center p-2 mb-2 shadow-inner relative overflow-hidden">
+                    <div class="flex-1 min-w-0 flex flex-col items-center text-center px-1">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-dark-panel border border-gold/40 flex items-center justify-center p-2 mb-1.5 shadow-md relative overflow-hidden">
                             <img x-show="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')" 
                                  :src="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')" 
                                  :alt="featuredMatch ? featuredMatch.homeTeam : ''" 
@@ -629,24 +553,27 @@
                                   :style="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '') ? 'display: none' : 'display: flex'" 
                                   x-text="teamInitials(featuredMatch ? featuredMatch.homeTeam : '')"></span>
                         </div>
-                        <span class="text-xs sm:text-sm font-bold text-white truncate max-w-full" x-text="featuredMatch ? featuredMatch.homeTeam : ''"></span>
+                        <span class="text-xs sm:text-sm font-bold text-white block truncate max-w-full px-1" x-text="featuredMatch ? featuredMatch.homeTeam : ''"></span>
                     </div>
 
                     <!-- Versus / Score -->
-                    <div class="px-2 sm:px-4 text-center shrink-0">
+                    <div class="px-3 sm:px-5 text-center shrink-0">
                         <template x-if="featuredMatch && (featuredMatch.homeScore !== null && featuredMatch.awayScore !== null)">
-                            <div class="font-display text-xl sm:text-2xl font-bold text-gold px-3 py-1 bg-dark-panel rounded-xl border border-dark-border">
+                            <div class="font-display text-xl sm:text-2xl font-bold text-gold px-3.5 py-1 bg-dark-panel rounded-xl border border-gold/40 shadow-inner">
                                 <span x-text="featuredMatch.homeScore"></span> : <span x-text="featuredMatch.awayScore"></span>
                             </div>
                         </template>
                         <template x-if="!featuredMatch || featuredMatch.homeScore === null">
-                            <span class="font-display text-xl sm:text-2xl font-bold text-zinc-400 tracking-wider">VS</span>
+                            <div class="flex flex-col items-center">
+                                <span class="font-display text-xl sm:text-2xl font-black text-gold tracking-widest px-2.5 py-0.5 rounded-lg bg-dark-panel border border-dark-border">VS</span>
+                                <span class="text-[10px] text-zinc-400 mt-1 uppercase font-semibold" x-text="featuredMatch ? formatMatchDate(featuredMatch.kickoff) : ''"></span>
+                            </div>
                         </template>
                     </div>
 
                     <!-- Away Team with Crest -->
-                    <div class="flex-1 min-w-0 flex flex-col items-center text-center">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-dark-panel border border-gold/30 flex items-center justify-center p-2 mb-2 shadow-inner relative overflow-hidden">
+                    <div class="flex-1 min-w-0 flex flex-col items-center text-center px-1">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-dark-panel border border-gold/40 flex items-center justify-center p-2 mb-1.5 shadow-md relative overflow-hidden">
                             <img x-show="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')" 
                                  :src="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')" 
                                  :alt="featuredMatch ? featuredMatch.awayTeam : ''" 
@@ -656,26 +583,30 @@
                                   :style="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '') ? 'display: none' : 'display: flex'" 
                                   x-text="teamInitials(featuredMatch ? featuredMatch.awayTeam : '')"></span>
                         </div>
-                        <span class="text-xs sm:text-sm font-bold text-white truncate max-w-full" x-text="featuredMatch ? featuredMatch.awayTeam : ''"></span>
+                        <span class="text-xs sm:text-sm font-bold text-white block truncate max-w-full px-1" x-text="featuredMatch ? featuredMatch.awayTeam : ''"></span>
                     </div>
                 </div>
 
                 <div class="mt-3 pt-3 border-t border-dark-border/60 flex items-center justify-between">
                     <span class="text-xs text-zinc-300 font-medium" x-text="featuredMatch ? formatMatchDate(featuredMatch.kickoff) : ''"></span>
-                    <button @click="setScreen('fixtures')" class="px-3 py-1.5 rounded-lg bg-dark-panel hover:bg-gold hover:text-black text-zinc-200 font-semibold text-xs transition border border-dark-border">
-                        View Fixtures
+                    <button @click="setScreen('fixtures')" class="px-3.5 py-1.5 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-black font-bold text-xs transition border border-gold/40 flex items-center space-x-1">
+                        <span>Current Fixtures</span>
+                        <span>→</span>
                     </button>
                 </div>
             </div>
 
-            <!-- SPECIAL SATURDAY EVENTS CAROUSEL -->
+            <!-- EVENTS: LIVE ACOUSTIC SESSIONS -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="font-display text-xl font-bold uppercase tracking-wider text-white">Live Acoustic Sessions</h3>
-                        <p class="text-xs text-zinc-300">Live music nights (Table reservation available)</p>
+                        <h3 class="font-display text-xl font-bold uppercase tracking-wider text-white">Live Acoustic Events</h3>
+                        <p class="text-xs text-zinc-300">Live band sessions (7:00 PM – 11:30 PM)</p>
                     </div>
-                    <button @click="openReservationWizard()" class="text-xs text-gold hover:underline font-semibold">Book A Table</button>
+                    <button @click="openReservationWizard()" class="text-xs text-gold hover:underline font-semibold flex items-center space-x-1">
+                        <span>Book Table</span>
+                        <span>→</span>
+                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -704,6 +635,58 @@
                             </div>
                         </div>
                     </template>
+                </div>
+            </div>
+
+            <!-- ABOUT GURA BICHA SPORTS BAR & LOUNGE (WITH ENHANCED ANIMATIONS) -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-dark-card via-dark-card to-amber-950/20 border border-gold/40 shadow-2xl relative overflow-hidden space-y-4 gold-glow-pulse">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ asset('images/logo.png') }}" alt="Gura Bicha Emblem" class="w-12 h-12 rounded-2xl object-contain border border-gold/50 bg-black p-0.5 shadow-lg shadow-gold/20 animate-float shrink-0">
+                    <div>
+                        <span class="text-[10px] font-bold text-gold uppercase tracking-widest block">VIP EXPERIENCE</span>
+                        <h3 class="font-display text-xl sm:text-2xl font-bold uppercase text-white tracking-wide">
+                            About Gura Bicha Sports Bar
+                        </h3>
+                    </div>
+                </div>
+
+                <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    Located in Addis Ababa at Mexico inside the Chamber of Commerce Building, <strong>Gura Bicha</strong> brings together the thrills of <strong>4K stadium matchday screenings</strong> and soulful <strong>Live Acoustic music sessions</strong>.
+                </p>
+
+                <!-- 4 FEATURE HIGHLIGHT CARDS -->
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div class="p-3.5 rounded-2xl bg-dark-panel/90 border border-dark-border hover:border-gold/50 transition-all card-hover-lift">
+                        <div class="w-9 h-9 rounded-xl bg-gold/15 text-gold flex items-center justify-center text-lg mb-2 shadow-inner">
+                            ⚽
+                        </div>
+                        <h4 class="font-bold text-xs text-white uppercase tracking-wider">4K Stadium Screens</h4>
+                        <p class="text-[11px] text-zinc-400 mt-1 leading-snug">Multi-angle ultra HD screens & arena sound for Premier League & Champions League.</p>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-dark-panel/90 border border-dark-border hover:border-gold/50 transition-all card-hover-lift">
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-gold flex items-center justify-center text-lg mb-2 shadow-inner">
+                            🎸
+                        </div>
+                        <h4 class="font-bold text-xs text-white uppercase tracking-wider">Live Acoustic Nights</h4>
+                        <p class="text-[11px] text-zinc-400 mt-1 leading-snug">Soulful Saturday acoustic band performances, reserved seating & cozy lounge vibes.</p>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-dark-panel/90 border border-dark-border hover:border-gold/50 transition-all card-hover-lift">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-lg mb-2 shadow-inner">
+                            🍔
+                        </div>
+                        <h4 class="font-bold text-xs text-white uppercase tracking-wider">Kitchen & Grill</h4>
+                        <p class="text-[11px] text-zinc-400 mt-1 leading-snug">Juicy burgers, wood-style pizzas, wings, and authentic Ethiopian culinary specialties.</p>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-dark-panel/90 border border-dark-border hover:border-gold/50 transition-all card-hover-lift">
+                        <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-lg mb-2 shadow-inner">
+                            🍺
+                        </div>
+                        <h4 class="font-bold text-xs text-white uppercase tracking-wider">Full Bar & Draft</h4>
+                        <p class="text-[11px] text-zinc-400 mt-1 leading-snug">Cold draft beers, local and imported wines, and handcrafted signature cocktails.</p>
+                    </div>
                 </div>
             </div>
 
@@ -1212,13 +1195,8 @@
                 </div>
                 <div class="flex items-center space-x-2">
                     <!-- View Official Menu Card -->
-                    <button @click="showMenuBoardModal = true" class="px-3 py-1.5 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-black border border-gold/40 text-xs font-semibold flex items-center space-x-1.5 transition">
+                    <button @click="showMenuBoardModal = true" class="px-3.5 py-2 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-black border border-gold/40 text-xs font-semibold flex items-center space-x-1.5 transition">
                         <span>📜 Menu Board</span>
-                    </button>
-                    <!-- Order Draft Quick Button (if items in order) -->
-                    <button x-show="orderTotalCount > 0" @click="showOrderModal = true" class="px-3.5 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs shadow-md shadow-gold/20 flex items-center space-x-1.5 transition animate-pulse">
-                        <span>🛒 My Order</span>
-                        <span class="px-1.5 py-0.5 rounded-full bg-black text-gold text-[10px]" x-text="orderTotalCount"></span>
                     </button>
                 </div>
             </div>
@@ -1229,7 +1207,7 @@
                     <span class="px-2.5 py-1 rounded-lg bg-black text-gold font-mono font-bold border border-gold/40" x-text="'TABLE ' + activeTableCode"></span>
                     <div>
                         <span class="font-bold text-gold block">Welcome to Table <span x-text="activeTableCode"></span>!</span>
-                        <span class="text-zinc-300 text-[11px]">Select your favorites below, review your table bill, and show to your server when ready.</span>
+                        <span class="text-zinc-300 text-[11px]">Browse our food & drinks selection below or ask your server for today's specials.</span>
                     </div>
                 </div>
                 <button @click="activeTableCode = null" class="text-zinc-400 hover:text-white p-1">✕</button>
@@ -1350,53 +1328,16 @@
                             </div>
                         </div>
 
-                        <!-- Card Footer & Add to Order -->
+                        <!-- Card Footer -->
                         <div class="p-4 pt-2 border-t border-dark-border/60 flex items-center justify-between">
                             <span class="font-display font-bold text-sm text-gold" x-text="item.price + ' ETB'"></span>
-
-                            <div>
-                                <template x-if="!getItemOrderQty(item.id)">
-                                    <button @click="addToOrder(item)" class="px-3.5 py-1.5 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-black border border-gold/40 font-bold text-xs transition flex items-center space-x-1 shadow-sm">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                        <span>Add to Order</span>
-                                    </button>
-                                </template>
-                                <template x-if="getItemOrderQty(item.id) > 0">
-                                    <div class="flex items-center space-x-1.5 bg-dark-panel border border-gold/50 rounded-xl p-1">
-                                        <button @click="removeFromOrder(item)" class="w-6 h-6 rounded-lg bg-dark-card text-white hover:text-gold font-bold flex items-center justify-center text-xs">
-                                            -
-                                        </button>
-                                        <span class="font-display font-bold text-gold text-xs px-1" x-text="getItemOrderQty(item.id)"></span>
-                                        <button @click="addToOrder(item)" class="w-6 h-6 rounded-lg bg-gold text-black font-bold flex items-center justify-center text-xs">
-                                            +
-                                        </button>
-                                    </div>
-                                </template>
-                            </div>
+                            <button @click="previewItem = item" class="px-3.5 py-1.5 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-black border border-gold/40 text-xs font-semibold transition flex items-center space-x-1">
+                                <span>Details</span>
+                                <span>→</span>
+                            </button>
                         </div>
                     </div>
                 </template>
-            </div>
-
-            <!-- FLOATING ORDER SUMMARY BAR (WHEN ITEMS ARE SELECTED) -->
-            <div x-show="orderTotalCount > 0" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-12 opacity-0" x-transition:enter-end="translate-y-0 opacity-100" class="fixed floating-bar-safe inset-x-3 sm:inset-x-4 max-w-lg mx-auto z-40">
-                <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950 via-zinc-900 to-amber-950 border border-gold shadow-2xl text-white flex items-center justify-between">
-                    <div class="flex items-center space-x-2.5">
-                        <div class="w-9 h-9 rounded-xl bg-gold text-black flex items-center justify-center font-bold text-base shadow-md">
-                            🛒
-                        </div>
-                        <div>
-                            <span class="text-xs font-semibold text-white block">
-                                <span class="text-gold font-bold" x-text="orderTotalCount"></span> items selected
-                            </span>
-                            <span class="font-display font-bold text-sm text-gold" x-text="'Subtotal: ' + orderSubtotal.toLocaleString() + ' ETB'"></span>
-                        </div>
-                    </div>
-                    <button @click="showOrderModal = true" class="px-4 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs transition shadow-lg shadow-gold/25 flex items-center space-x-1">
-                        <span>View Order</span>
-                        <span>→</span>
-                    </button>
-                </div>
             </div>
 
         </div>
@@ -1424,11 +1365,11 @@
             </div>
 
             <!-- SUCCESS CONFIRMATION BADGE -->
-            <div x-show="fanSaved" class="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500 text-emerald-200 text-xs flex items-center space-x-3 shadow-lg">
-                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <div>
-                    <span class="font-bold text-white block">You're on the Matchday Alert List!</span>
-                    <span class="text-[11px]">We will notify you when <strong class="text-gold" x-text="fanForm.favoriteClub"></strong> kicks off.</span>
+            <div x-show="fanSaved" class="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500 text-emerald-100 text-xs flex items-center space-x-3 shadow-xl">
+                <span class="text-2xl">🎉</span>
+                <div class="flex-1">
+                    <span class="font-bold text-white text-sm block">Welcome to the Fan Club!</span>
+                    <span class="text-emerald-300 text-[11px]" x-text="'Registered as a ' + (fanForm.favoriteClub || 'club') + ' supporter! A welcome notification has been sent to your Telegram chat.'"></span>
                 </div>
             </div>
 
@@ -1437,19 +1378,24 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-bold text-white uppercase tracking-wider">Your Fan Profile</h3>
                     <template x-if="isTelegramUser">
-                        <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-400 text-[10px] font-semibold">
+                        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-400 text-[10px] font-semibold">
                             <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.537-.195 1.006.128.832.926z"/></svg>
-                            <span x-text="'Linked: ' + (telegramUsername || 'Telegram Patron')"></span>
+                            <span x-text="'Telegram: ' + (telegramUsername || 'Patron')"></span>
                         </span>
                     </template>
                 </div>
 
+                <!-- TELEGRAM ACCOUNT STATUS -->
                 <template x-if="isTelegramUser">
-                    <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-sky-200 text-xs flex items-center space-x-2">
-                        <span class="text-sm">✈️</span>
-                        <div class="text-[11px] leading-relaxed">
-                            <span class="font-bold text-white">Telegram Connected:</span> Alerts & scores delivered directly to your chat.
+                    <div class="p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 text-sky-200 text-xs flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-lg">✈️</span>
+                            <div>
+                                <span class="font-bold text-white block">Connected via Telegram</span>
+                                <span class="text-[11px] text-zinc-300" x-text="'Notifications will be delivered to ' + (telegramUsername || 'your chat')"></span>
+                            </div>
                         </div>
+                        <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/40">Active</span>
                     </div>
                 </template>
 
@@ -1484,15 +1430,17 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs text-zinc-300 font-semibold mb-1">Mobile Phone (for Telegram Alerts) *</label>
-                        <input type="tel" x-model="fanForm.phone" placeholder="+251905888724" class="w-full bg-dark-panel border border-dark-border rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-gold">
+                        <label class="block text-xs text-zinc-300 font-semibold mb-1">Email Address (Optional)</label>
+                        <input type="email" x-model="fanForm.email" placeholder="abebe@example.com" class="w-full bg-dark-panel border border-dark-border rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-gold">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs text-zinc-300 font-semibold mb-1">Email Address (Optional)</label>
-                    <input type="email" x-model="fanForm.email" placeholder="abebe@example.com" class="w-full bg-dark-panel border border-dark-border rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-gold">
-                </div>
+                <template x-if="!isTelegramUser">
+                    <div>
+                        <label class="block text-xs text-zinc-300 font-semibold mb-1">Telegram Username (Optional)</label>
+                        <input type="text" x-model="telegramUsername" placeholder="@yourusername" class="w-full bg-dark-panel border border-dark-border rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-gold">
+                    </div>
+                </template>
 
                 <!-- NOTIFICATION CHECKBOXES -->
                 <div class="space-y-2.5 pt-2 border-t border-dark-border/60">
@@ -1517,9 +1465,9 @@
                 <div x-show="fanErrorMessage" class="p-3 rounded-xl bg-red-950/60 border border-red-800 text-red-200 text-xs" x-text="fanErrorMessage"></div>
 
                 <div class="pt-2">
-                    <button @click="saveFanProfile()" :disabled="savingFan || !fanForm.name || !fanForm.phone" 
+                    <button @click="saveFanProfile()" :disabled="savingFan || !fanForm.name" 
                             class="w-full py-3 rounded-xl bg-gold hover:bg-gold-light disabled:opacity-40 text-black font-bold text-sm transition shadow-lg shadow-gold/25 flex items-center justify-center space-x-2">
-                        <span x-show="!savingFan">Save Alerts & Join Fan Club</span>
+                        <span x-show="!savingFan">⚡ Save Alerts & Join Fan Club</span>
                         <span x-show="savingFan">Saving Preferences...</span>
                     </button>
                 </div>
@@ -1693,13 +1641,9 @@
                     <span class="text-gold font-bold block text-[11px] uppercase tracking-wider">Kitchen & Bar Note:</span>
                     <span class="text-zinc-300 text-[11px]">Prepared fresh to order at Gura Bicha Sport Bar. Good Food • Great Drinks • Best Vibes!</span>
                 </div>
-                <div class="flex items-center space-x-2 pt-2">
-                    <button @click="previewItem = null" class="w-1/3 py-2.5 rounded-xl bg-dark-panel text-zinc-300 font-semibold border border-dark-border">
+                <div class="pt-2">
+                    <button @click="previewItem = null" class="w-full py-3 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs transition">
                         Close
-                    </button>
-                    <button @click="addToOrder(previewItem); previewItem = null; showOrderModal = true" class="w-2/3 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold flex items-center justify-center space-x-1 shadow-md shadow-gold/25">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span>Add & View Order</span>
                     </button>
                 </div>
             </div>
@@ -1726,136 +1670,6 @@
                 <span class="text-zinc-400 text-[11px]">All prices in ETB · Chamber Bldg</span>
                 <button @click="showMenuBoardModal = false" class="px-4 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs">
                     Close
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TABLE ORDER & BILL ESTIMATOR MODAL -->
-    <div x-show="showOrderModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md" x-cloak>
-        <div class="bg-dark-card border border-gold/40 rounded-3xl max-w-md w-[95%] sm:w-full p-4 sm:p-5 space-y-4 shadow-2xl max-h-[90dvh] flex flex-col justify-between overflow-y-auto">
-            <div class="flex items-center justify-between border-b border-dark-border pb-3">
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gold/20 text-gold flex items-center justify-center font-bold text-base">
-                        🧾
-                    </div>
-                    <div>
-                        <h3 class="font-display text-lg font-bold uppercase text-white">Table Order Draft</h3>
-                        <p class="text-[11px] text-zinc-400">Review selected dishes & estimated bill in ETB</p>
-                    </div>
-                </div>
-                <button @click="showOrderModal = false" class="text-zinc-400 hover:text-white p-1 text-lg">✕</button>
-            </div>
-
-            <!-- TABLE IDENTIFIER -->
-            <div class="p-3 rounded-xl bg-dark-panel border border-dark-border flex items-center justify-between text-xs">
-                <span class="text-zinc-400">Serving Table:</span>
-                <div class="flex items-center space-x-2">
-                    <select x-model="selectedOrderTable" class="bg-dark-card border border-dark-border rounded-lg px-2.5 py-1 text-gold font-bold focus:outline-none focus:border-gold">
-                        <option value="T1">Table T1 (Stage Left)</option>
-                        <option value="T2">Table T2 (Center Floor)</option>
-                        <option value="T3">Table T3 (Stage Right)</option>
-                        <option value="T4">Table T4 (Stage Front)</option>
-                        <option value="T5">Table T5 (Mezzanine)</option>
-                        <option value="T6">Table T6 (Artist Circle)</option>
-                        <option value="BAR">Walk-in Bar Counter</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- ORDER ITEMS LIST -->
-            <div class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-56">
-                <template x-if="orderList.length === 0">
-                    <div class="py-8 text-center text-zinc-400 text-xs">
-                        No items added yet. Browse the menu and click <strong>+ Add to Order</strong>!
-                    </div>
-                </template>
-                <template x-for="entry in orderList" :key="entry.item.id">
-                    <div class="p-3 rounded-xl bg-dark-panel border border-dark-border/70 flex items-center justify-between text-xs">
-                        <div class="flex-1 pr-3">
-                            <span class="font-semibold text-white block" x-text="entry.item.name"></span>
-                            <span class="text-zinc-400 text-[11px]" x-text="entry.item.price + ' ETB each'"></span>
-                        </div>
-                        <div class="flex items-center space-x-2 shrink-0">
-                            <div class="flex items-center space-x-1.5 bg-dark-card border border-dark-border rounded-lg p-0.5">
-                                <button @click="removeFromOrder(entry.item)" class="w-6 h-6 rounded bg-dark-panel text-white hover:text-gold font-bold flex items-center justify-center text-xs">-</button>
-                                <span class="font-mono font-bold text-gold px-1.5" x-text="entry.qty"></span>
-                                <button @click="addToOrder(entry.item)" class="w-6 h-6 rounded bg-gold text-black font-bold flex items-center justify-center text-xs">+</button>
-                            </div>
-                            <span class="font-display font-bold text-white text-xs w-16 text-right" x-text="entry.lineTotal.toLocaleString() + ' ETB'"></span>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            <!-- ESTIMATED BILL BREAKDOWN -->
-            <div class="p-3.5 rounded-2xl bg-dark-panel border border-dark-border space-y-1.5 text-xs">
-                <div class="flex justify-between text-zinc-400">
-                    <span>Items Subtotal (<span x-text="orderTotalCount"></span> items):</span>
-                    <span class="font-mono text-white font-semibold" x-text="orderSubtotal.toLocaleString() + ' ETB'"></span>
-                </div>
-                <div class="flex justify-between text-zinc-400">
-                    <span>Estimated 15% VAT:</span>
-                    <span class="font-mono text-zinc-300" x-text="orderVat.toLocaleString() + ' ETB'"></span>
-                </div>
-                <div class="pt-2 border-t border-dark-border/80 flex justify-between items-baseline">
-                    <span class="font-bold text-white uppercase tracking-wider text-xs">Estimated Bill Total:</span>
-                    <span class="font-display font-extrabold text-xl text-gold" x-text="orderGrandTotal.toLocaleString() + ' ETB'"></span>
-                </div>
-            </div>
-
-            <!-- ACTIONS -->
-            <div class="flex items-center space-x-2 pt-1">
-                <button @click="clearOrder()" class="w-1/3 py-2.5 rounded-xl bg-dark-panel text-red-400 hover:text-red-300 font-semibold text-xs border border-dark-border">
-                    Clear All
-                </button>
-                <button @click="showOrderModal = false; showWaiterSlipModal = true" :disabled="orderTotalCount === 0" class="w-2/3 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs flex items-center justify-center space-x-1.5 shadow-lg shadow-gold/20 disabled:opacity-50">
-                    <span>📱 Show Slip to Waiter</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- DIGITAL ORDER SLIP TO SHOW WAITER -->
-    <div x-show="showWaiterSlipModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md" x-cloak>
-        <div class="bg-white text-black rounded-3xl max-w-sm w-[94%] sm:w-full p-5 sm:p-6 space-y-4 shadow-2xl border-4 border-gold max-h-[92dvh] overflow-y-auto">
-            <div class="text-center pb-3 border-b-2 border-dashed border-zinc-300 space-y-1">
-                <img src="{{ asset('images/logo.png') }}" alt="Gura Bicha" class="w-12 h-12 rounded-xl object-contain mx-auto border border-gold/40 shadow-sm bg-black p-0.5">
-                <h3 class="font-display text-xl font-bold uppercase tracking-wider text-black">GURA BICHA</h3>
-                <div class="inline-block px-3 py-1 rounded-full bg-gold text-black font-bold text-xs tracking-wider" x-text="'SERVING: ' + selectedOrderTable"></div>
-                <p class="text-[11px] text-zinc-500">Mexico, Chamber of Commerce Bldg</p>
-            </div>
-
-            <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <template x-for="entry in orderList" :key="entry.item.id">
-                    <div class="flex justify-between items-center text-xs py-1 border-b border-zinc-100">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-6 h-6 rounded-md bg-zinc-900 text-gold font-bold text-xs flex items-center justify-center shrink-0" x-text="entry.qty + 'x'"></span>
-                            <span class="font-bold text-zinc-900" x-text="entry.item.name"></span>
-                        </div>
-                        <span class="font-mono font-bold text-zinc-800" x-text="entry.lineTotal.toLocaleString() + ' ETB'"></span>
-                    </div>
-                </template>
-            </div>
-
-            <div class="pt-2 border-t-2 border-dashed border-zinc-300 space-y-1 text-xs">
-                <div class="flex justify-between text-zinc-600">
-                    <span>Subtotal:</span>
-                    <span class="font-mono font-semibold" x-text="orderSubtotal.toLocaleString() + ' ETB'"></span>
-                </div>
-                <div class="flex justify-between text-zinc-600">
-                    <span>Estimated 15% VAT:</span>
-                    <span class="font-mono" x-text="orderVat.toLocaleString() + ' ETB'"></span>
-                </div>
-                <div class="flex justify-between items-baseline pt-2 border-t border-zinc-200">
-                    <span class="font-bold uppercase tracking-wider text-sm">Grand Total:</span>
-                    <span class="font-display font-extrabold text-2xl text-amber-800" x-text="orderGrandTotal.toLocaleString() + ' ETB'"></span>
-                </div>
-            </div>
-
-            <div class="pt-2">
-                <button @click="showWaiterSlipModal = false" class="w-full py-3 rounded-xl bg-black text-white font-bold text-xs hover:bg-zinc-800 transition">
-                    Done / Return to Menu
                 </button>
             </div>
         </div>
@@ -1962,8 +1776,8 @@
             'Porto': FDATA_CDN + '503.png',
             'Sporting CP': FDATA_CDN + '498.png',
             'Sporting': FDATA_CDN + '498.png',
-            'Galatasaray': FDATA_CDN + '613.png',
-            'Fenerbahce': FDATA_CDN + '614.png',
+            'Galatasaray': APISPORTS_CDN + '645.png',
+            'Fenerbahce': APISPORTS_CDN + '611.png',
             'Celtic': FDATA_CDN + '732.png',
             'Club Brugge': FDATA_CDN + '851.png',
             'Shakhtar Donetsk': FDATA_CDN + '683.png',
@@ -2245,16 +2059,12 @@
                 savingFan: false,
                 fanErrorMessage: '',
 
-                // Menu State & Order Estimator
+                // Menu State
                 menuCategory: 'ALL',
                 menuSubCategory: 'ALL',
                 menuSearch: '',
                 menuSort: 'popular',
-                myOrder: {},
-                showOrderModal: false,
-                showWaiterSlipModal: false,
                 showMenuBoardModal: false,
-                selectedOrderTable: 'T1',
                 previewItem: null,
 
                 // Reserve Wizard (EXCLUSIVELY FOR SATURDAY ACOUSTIC)
@@ -2628,32 +2438,41 @@
                 },
 
                 async saveFanProfile() {
-                    if (!this.fanForm.name || !this.fanForm.phone) {
-                        this.fanErrorMessage = 'Please enter your name and phone number.';
+                    if (!this.fanForm.name) {
+                        this.fanErrorMessage = 'Please enter your name.';
                         return;
                     }
                     this.savingFan = true;
                     this.fanErrorMessage = '';
 
                     try {
+                        const payload = {
+                            name: this.fanForm.name,
+                            favorite_club: this.fanForm.favoriteClub || 'Arsenal',
+                            telegram_chat_id: this.telegramUserId ? String(this.telegramUserId) : null,
+                            telegram_username: this.telegramUsername ? this.telegramUsername.replace(/^@/, '') : null,
+                            email: this.fanForm.email || null,
+                            notify_matchday: Boolean(this.fanForm.notifyMatchday),
+                            notify_scores: Boolean(this.fanForm.notifyScores),
+                            notify_acoustic: Boolean(this.fanForm.notifyAcoustic),
+                            notes: this.telegramUsername ? `Telegram: ${this.telegramUsername} (ID: ${this.telegramUserId || 'N/A'})` : null,
+                        };
+                        if (this.fanForm.phone) {
+                            payload.phone = this.fanForm.phone;
+                        }
+
                         const res = await fetch(`${window.API_BASE}/customer/profile`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: this.fanForm.name,
-                                phone: this.fanForm.phone,
-                                email: this.fanForm.email,
-                                favorite_club: this.fanForm.favoriteClub,
-                                notify_matchday: this.fanForm.notifyMatchday,
-                                notify_scores: this.fanForm.notifyScores,
-                                notify_acoustic: this.fanForm.notifyAcoustic,
-                                notes: this.telegramUsername ? `Telegram: ${this.telegramUsername} (ID: ${this.telegramUserId || 'N/A'})` : null,
-                            }),
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload),
                         });
 
-                        const json = await res.json();
+                        const json = await res.json().catch(() => ({}));
                         if (!res.ok) {
-                            this.fanErrorMessage = json.error || 'Could not save fan profile.';
+                            this.fanErrorMessage = json.error || json.message || 'Could not save fan profile.';
                             this.savingFan = false;
                             return;
                         }
@@ -2663,7 +2482,6 @@
                         try {
                             localStorage.setItem('GB_DETAILS', JSON.stringify({
                                 name: this.fanForm.name,
-                                phone: this.fanForm.phone,
                                 email: this.fanForm.email,
                                 favoriteClub: this.fanForm.favoriteClub,
                             }));
@@ -2674,7 +2492,8 @@
                         }
 
                     } catch (e) {
-                        this.fanErrorMessage = 'Network error. Please check your connection.';
+                        console.error('Fan profile save error:', e);
+                        this.fanErrorMessage = 'Unable to save at the moment. Please try again.';
                     } finally {
                         this.savingFan = false;
                     }
@@ -2768,67 +2587,6 @@
 
                         return true;
                     });
-                },
-
-                addToOrder(item) {
-                    if (!item) return;
-                    this.myOrder[item.id] = (this.myOrder[item.id] || 0) + 1;
-                    if (this.tgWebApp && this.tgWebApp.HapticFeedback) {
-                        this.tgWebApp.HapticFeedback.impactOccurred('light');
-                    }
-                },
-
-                removeFromOrder(item) {
-                    if (!item || !this.myOrder[item.id]) return;
-                    if (this.myOrder[item.id] > 1) {
-                        this.myOrder[item.id]--;
-                    } else {
-                        delete this.myOrder[item.id];
-                    }
-                    if (this.tgWebApp && this.tgWebApp.HapticFeedback) {
-                        this.tgWebApp.HapticFeedback.impactOccurred('light');
-                    }
-                },
-
-                getItemOrderQty(itemId) {
-                    return this.myOrder[itemId] || 0;
-                },
-
-                clearOrder() {
-                    this.myOrder = {};
-                    this.showOrderModal = false;
-                    this.showWaiterSlipModal = false;
-                },
-
-                get orderList() {
-                    const list = [];
-                    for (const [id, qty] of Object.entries(this.myOrder)) {
-                        const item = this.menuItems.find(m => m.id === id);
-                        if (item && qty > 0) {
-                            list.push({
-                                item,
-                                qty,
-                                lineTotal: item.price * qty,
-                            });
-                        }
-                    }
-                    return list;
-                },
-
-                get orderTotalCount() {
-                    return Object.values(this.myOrder).reduce((a, b) => a + b, 0);
-                },
-
-                get orderSubtotal() {
-                    return this.orderList.reduce((acc, entry) => acc + entry.lineTotal, 0);
-                },
-
-                get orderVat() {
-                    return Math.round(this.orderSubtotal * 0.15);
-                },
-
-                get orderGrandTotal() {
-                    return this.orderSubtotal + this.orderVat;
                 },
 
                 getItemTags(item) {
