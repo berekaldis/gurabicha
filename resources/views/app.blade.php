@@ -180,40 +180,69 @@
         }
 
         /* ============================================================== */
-        /* LIGHT MODE HIGH-CONTRAST TYPOGRAPHY & CARD PALETTES            */
-        /* Warm Tuscan Luxury Cream & Polished Royal Gold                  */
+        /* LIGHT MODE HIGH-CONTRAST PALETTES                              */
+        /* Clean, Crisp Luxury Theme for Daytime Legibility                */
         /* ============================================================== */
+        html.light {
+            color-scheme: light;
+        }
         html.light body {
-            background-color: #faf8f5;
-            color: #0f172a;
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
         }
         html.light .bg-dark-bg {
-            background-color: #f3efe6 !important;
+            background-color: #f1f5f9 !important;
             color: #0f172a !important;
         }
         html.light .bg-dark-card {
             background-color: #ffffff !important;
-            border-color: rgba(212, 175, 55, 0.3) !important;
+            border-color: #e2e8f0 !important;
             color: #0f172a !important;
-            box-shadow: 0 10px 30px -4px rgba(180, 83, 9, 0.07), 0 2px 6px 0 rgba(0, 0, 0, 0.03) !important;
+            box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
         }
         html.light .bg-dark-panel {
-            background-color: #fbf9f6 !important;
-            border-color: #e5ded4 !important;
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
             color: #0f172a !important;
         }
         html.light .border-dark-border {
-            border-color: #e5ded4 !important;
+            border-color: #e2e8f0 !important;
         }
         html.light header {
-            background-color: rgba(255, 255, 255, 0.96) !important;
-            border-color: #e5ded4 !important;
-            box-shadow: 0 4px 20px rgba(180, 83, 9, 0.05);
+            background-color: rgba(255, 255, 255, 0.98) !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
         }
         html.light nav.fixed {
             background-color: rgba(255, 255, 255, 0.98) !important;
-            border-color: #e5ded4 !important;
-            box-shadow: 0 -4px 20px rgba(180, 83, 9, 0.06);
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 -2px 14px rgba(15, 23, 42, 0.05) !important;
+        }
+
+        /* Light Mode High-Contrast Typography */
+        html.light .text-white {
+            color: #0f172a;
+        }
+        html.light .text-zinc-100 {
+            color: #0f172a;
+        }
+        html.light .text-zinc-200 {
+            color: #1e293b;
+        }
+        html.light .text-zinc-300 {
+            color: #334155;
+        }
+        html.light .text-zinc-400 {
+            color: #475569;
+        }
+        html.light .text-zinc-500 {
+            color: #64748b;
+        }
+        html.light .text-gold {
+            color: #b45309 !important; /* Rich readable amber in light mode */
+        }
+        html.light .text-gold-light {
+            color: #92400e !important;
         }
         html.light .gold-gradient-text {
             background: linear-gradient(135deg, #b45309 0%, #d97706 60%, #92400e 100%);
@@ -221,46 +250,29 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Light Mode Text Visibility - Deep High Contrast Hierarchies */
-        html.light .text-white {
-            color: #0f172a !important;
-        }
-        html.light .text-zinc-100 {
-            color: #0f172a !important;
-        }
-        html.light .text-zinc-200 {
-            color: #1e293b !important;
-        }
-        html.light .text-zinc-300 {
-            color: #334155 !important;
-        }
-        html.light .text-zinc-400 {
-            color: #475569 !important;
-        }
-        html.light .text-zinc-500 {
-            color: #64748b !important;
-        }
-        /* Crisp Golden Amber on Light Backgrounds (prevents bright yellow on white) */
-        html.light .text-gold {
-            color: #b45309 !important;
-        }
-        html.light .text-gold-light {
-            color: #92400e !important;
-        }
-
-        /* High-Contrast Button & Interactive Readability in Light Mode */
+        /* VIP Gold Buttons (Black bold text on Gold) */
         html.light .bg-gold,
         html.light .bg-gold *,
         html.light button.bg-gold,
         html.light button.bg-gold *,
         html.light a.bg-gold,
         html.light a.bg-gold * {
+            background-color: #f5bd19 !important;
+            color: #000000 !important;
+            font-weight: 700;
+        }
+        html.light .bg-gold:hover,
+        html.light button.bg-gold:hover,
+        html.light a.bg-gold:hover {
+            background-color: #ffd34d !important;
             color: #000000 !important;
         }
         html.light .bg-gold-light,
         html.light .bg-gold-light * {
             color: #000000 !important;
         }
+
+        /* Secondary Panels and Inactive Buttons in Light Mode */
         html.light button.bg-dark-panel,
         html.light a.bg-dark-panel {
             background-color: #f1f5f9 !important;
@@ -271,20 +283,62 @@
         html.light a.bg-dark-panel * {
             color: #0f172a !important;
         }
+        html.light button.bg-dark-panel:hover,
+        html.light a.bg-dark-panel:hover {
+            background-color: #e2e8f0 !important;
+            border-color: #94a3b8 !important;
+            color: #000000 !important;
+        }
         html.light button.bg-dark-panel.text-gold,
         html.light button.bg-dark-panel .text-gold {
             color: #b45309 !important;
         }
+
+        /* Colored Action Buttons & Dark Photo Overlays MUST maintain crisp white text */
         html.light .bg-red-600,
         html.light .bg-red-600 *,
+        html.light button.bg-red-600,
+        html.light button.bg-red-600 *,
+        html.light .bg-red-700,
+        html.light .bg-red-700 *,
+        html.light .bg-purple-600,
+        html.light .bg-purple-600 *,
         html.light .bg-purple-900,
         html.light .bg-purple-900 *,
-        html.light .bg-emerald-900,
-        html.light .bg-emerald-900 * {
+        html.light .bg-blue-600,
+        html.light .bg-blue-600 *,
+        html.light .bg-emerald-600,
+        html.light .bg-emerald-600 *,
+        html.light .bg-black,
+        html.light .bg-black *,
+        html.light [class*="bg-black/"],
+        html.light [class*="bg-black/"] *,
+        html.light .hero-banner-card,
+        html.light .hero-banner-card *,
+        html.light .hero-banner-card h2,
+        html.light .hero-banner-card span {
             color: #ffffff !important;
         }
+        html.light .hero-banner-card .gold-gradient-text {
+            background: linear-gradient(135deg, #ffd34d 0%, #f5bd19 60%, #c49610 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        html.light .hero-banner-card .bg-gold,
+        html.light .hero-banner-card button.bg-gold,
+        html.light .hero-banner-card .bg-gold * {
+            color: #000000 !important;
+        }
 
-        /* Form Controls in Light Mode */
+        /* Gold text over dark photo badges stays golden */
+        html.light [class*="bg-black/"] .text-gold,
+        html.light [class*="bg-black"] .text-gold,
+        html.light [class*="bg-zinc-900"] .text-gold,
+        html.light .hero-banner-card .text-gold {
+            color: #fbbf24 !important;
+        }
+
+        /* Form Inputs & Controls in Light Mode */
         html.light input,
         html.light textarea,
         html.light select {
@@ -292,34 +346,87 @@
             color: #0f172a !important;
             border-color: #cbd5e1 !important;
         }
+        html.light input:focus,
+        html.light textarea:focus,
+        html.light select:focus {
+            border-color: #b45309 !important;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.15) !important;
+        }
         html.light input::placeholder,
         html.light textarea::placeholder {
             color: #94a3b8 !important;
         }
-
-        /* CRITICAL: Protect text readability inside dark photo badges in light mode */
-        html.light [class*="bg-black/"],
-        html.light [class*="bg-black"],
-        html.light [class*="bg-zinc-900/"],
-        html.light [class*="bg-zinc-900"] {
-            color: #ffffff;
-        }
-        html.light [class*="bg-black/"] .text-white,
-        html.light [class*="bg-black"] .text-white,
-        html.light [class*="bg-zinc-900"] .text-white {
-            color: #ffffff !important;
-        }
-        html.light [class*="bg-black/"] .text-gold,
-        html.light [class*="bg-black"] .text-gold,
-        html.light [class*="bg-zinc-900"] .text-gold {
-            color: #fbbf24 !important; /* Vibrant gold over dark image badges */
-        }
-        html.light [class*="bg-black/"] .text-zinc-300,
-        html.light [class*="bg-black"] .text-zinc-300 {
-            color: #e2e8f0 !important;
+        html.light input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(30%) sepia(90%) saturate(1500%) hue-rotate(10deg);
+            opacity: 0.9 !important;
+            cursor: pointer;
         }
 
-        /* Badges on cards in light mode */
+        /* Status & Category Badges in Light Mode */
+        html.light .bg-emerald-900\/60,
+        html.light .bg-emerald-950\/80,
+        html.light .bg-emerald-900\/40 {
+            background-color: #dcfce7 !important;
+            border: 1px solid #86efac !important;
+            color: #15803d !important;
+        }
+        html.light .bg-emerald-900\/60 *,
+        html.light .bg-emerald-950\/80 *,
+        html.light .bg-emerald-900\/40 * {
+            color: #15803d !important;
+        }
+
+        html.light .bg-red-900\/60,
+        html.light .bg-red-950\/60,
+        html.light .bg-red-900\/40 {
+            background-color: #fee2e2 !important;
+            border: 1px solid #fca5a5 !important;
+            color: #b91c1c !important;
+        }
+        html.light .bg-red-900\/60 *,
+        html.light .bg-red-950\/60 *,
+        html.light .bg-red-900\/40 * {
+            color: #b91c1c !important;
+        }
+
+        html.light .bg-amber-950\/30,
+        html.light .bg-amber-950\/40,
+        html.light .bg-amber-500\/20 {
+            background-color: #fef3c7 !important;
+            border: 1px solid #fde68a !important;
+            color: #92400e !important;
+        }
+        html.light .bg-amber-950\/30 *,
+        html.light .bg-amber-950\/40 *,
+        html.light .bg-amber-500\/20 * {
+            color: #92400e !important;
+        }
+
+        html.light .bg-purple-950\/40,
+        html.light .bg-purple-900\/60 {
+            background-color: #f3e8ff !important;
+            border: 1px solid #d8b4fe !important;
+            color: #6b21a8 !important;
+        }
+        html.light .bg-purple-950\/40 *,
+        html.light .bg-purple-900\/60 * {
+            color: #6b21a8 !important;
+        }
+
+        html.light .bg-sky-950\/40,
+        html.light .bg-sky-900\/60,
+        html.light .bg-sky-500\/20 {
+            background-color: #e0f2fe !important;
+            border: 1px solid #bae6fd !important;
+            color: #0369a1 !important;
+        }
+        html.light .bg-sky-950\/40 *,
+        html.light .bg-sky-900\/60 *,
+        html.light .bg-sky-500\/20 * {
+            color: #0369a1 !important;
+        }
+
         html.light .badge-pl {
             background-color: #f3e8ff !important;
             color: #6b21a8 !important;
@@ -334,6 +441,15 @@
             background-color: #fef3c7 !important;
             color: #92400e !important;
             border-color: #fcd34d !important;
+        }
+
+        /* Hover states */
+        html.light .hover\:bg-zinc-800:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        html.light .hover\:text-white:hover {
+            color: #0f172a !important;
         }
 
         /* Card Hover Animations */
@@ -523,6 +639,15 @@
                     </template>
                 </button>
 
+                <!-- FEEDBACK & SUGGESTIONS PILL -->
+                <button type="button" 
+                        @click="openFeedback()" 
+                        :title="t('feedback_btn_title')" 
+                        class="px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs rounded-xl bg-dark-panel border border-gold/40 text-gold hover:border-gold hover:bg-gold/15 transition-all shadow-sm flex items-center space-x-1 font-bold shrink-0 active:scale-95">
+                    <span class="text-xs">💬</span>
+                    <span class="hidden sm:inline text-[11px]" x-text="t('feedback_pill')">Ideas</span>
+                </button>
+
                 <!-- VENUE INFO & DIRECTIONS BUTTON -->
                 <button type="button" @click="showVenueModal = true" class="px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs rounded-xl bg-dark-panel border border-dark-border text-zinc-200 hover:text-gold hover:border-gold/50 transition flex items-center space-x-1 font-medium shrink-0 active:scale-95">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -542,8 +667,8 @@
         <div x-show="screen === 'home'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4 sm:space-y-5">
             
             <!-- HERO BANNER -->
-            <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/30 bg-dark-card shadow-2xl flex flex-col justify-end min-h-[17rem] sm:min-h-[20rem]">
-                <div class="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/60 to-black/30 z-10"></div>
+            <div class="hero-banner-card relative rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/40 bg-zinc-950 shadow-2xl flex flex-col justify-end min-h-[17rem] sm:min-h-[20rem]">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30 z-10"></div>
                 <img src="{{ asset('images/hero-gura.jpg') }}" alt="Gura Bicha Atmosphere" class="absolute inset-0 w-full h-full object-cover object-center filter brightness-75">
                 
                 <div class="relative z-20 p-4 sm:p-6 space-y-2 sm:space-y-3">
@@ -773,6 +898,25 @@
                         <span class="text-emerald-400 font-bold">Saturdays 7:00 PM</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- PATRON FEEDBACK & SUGGESTIONS CALLOUT CARD -->
+            <div class="rounded-2xl border border-gold/30 bg-gradient-to-r from-gold/10 via-dark-card to-dark-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg card-hover-lift">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gold/20 border border-gold/40 flex items-center justify-center text-2xl shrink-0">
+                        💬
+                    </div>
+                    <div>
+                        <h4 class="font-display font-bold text-white text-sm sm:text-base uppercase tracking-wide">
+                            <span x-text="lang === 'am' ? 'አስተያየት ወይም ጥቆማ አለዎት?' : 'Have Feedback or a Suggestion?'"></span>
+                        </h4>
+                        <p class="text-xs text-zinc-300 mt-0.5" x-text="lang === 'am' ? 'የጉራ ብቻ ቆይታዎ የበለጠ የተሟላ እንዲሆን ሀሳብዎን ያካፍሉን።' : 'Tell us how we can make your Game & Groove experience even more legendary.'"></p>
+                    </div>
+                </div>
+                <button type="button" @click="openFeedback()" class="px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs sm:text-sm transition shadow-md shadow-gold/20 flex items-center justify-center space-x-1.5 shrink-0 active:scale-95">
+                    <span>✍️</span>
+                    <span x-text="lang === 'am' ? 'አስተያየት ይስጡ' : 'Share Feedback'"></span>
+                </button>
             </div>
 
         </div>
@@ -1726,6 +1870,114 @@
         </div>
     </div>
 
+    <!-- FEEDBACK & SUGGESTIONS MODAL -->
+    <div x-show="showFeedbackModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md" x-cloak>
+        <div class="bg-dark-card border border-gold/40 rounded-3xl max-w-md w-[94%] sm:w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[92dvh] overflow-y-auto" @click.away="showFeedbackModal = false">
+            
+            <div class="flex items-center justify-between border-b border-dark-border pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center text-lg">
+                        💬
+                    </div>
+                    <div>
+                        <h3 class="font-display text-base sm:text-lg font-bold uppercase text-white" x-text="t('feedback_modal_title')">Feedback & Suggestions</h3>
+                        <p class="text-[10px] sm:text-xs text-zinc-400" x-text="t('feedback_modal_subtitle')">Help us make your Gura Bicha experience even better</p>
+                    </div>
+                </div>
+                <button @click="showFeedbackModal = false" class="text-zinc-400 hover:text-white text-lg p-1">✕</button>
+            </div>
+
+            <!-- SUCCESS BANNER -->
+            <div x-show="feedbackSuccess" class="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500 text-emerald-100 text-xs flex items-center space-x-3 shadow-xl">
+                <span class="text-2xl">🎉</span>
+                <div class="flex-1">
+                    <span class="font-bold text-white text-sm block" x-text="lang === 'am' ? 'አስተያየትዎ ደርሶናል!' : 'Feedback Received!'"></span>
+                    <span class="text-emerald-300 text-[11px]" x-text="t('feedback_thanks')">Thank you for your valuable feedback! We appreciate you.</span>
+                </div>
+            </div>
+
+            <form @submit.prevent="submitFeedback()" class="space-y-3.5" x-show="!feedbackSuccess">
+                
+                <!-- STAR RATING -->
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1.5" x-text="lang === 'am' ? 'ደረጃ ይስጡን (1 - 5 ኮከብ)' : 'Rate Your Experience (1 - 5 Stars)'"></label>
+                    <div class="flex items-center space-x-2">
+                        <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                            <button type="button" 
+                                    @click="feedbackForm.rating = star"
+                                    class="text-2xl sm:text-3xl transition-transform transform active:scale-125 focus:outline-none"
+                                    :class="feedbackForm.rating >= star ? 'text-amber-400 drop-shadow' : 'text-zinc-500 hover:text-amber-300'">
+                                ★
+                            </button>
+                        </template>
+                        <span class="text-xs font-bold text-gold ml-2" x-text="feedbackForm.rating ? (feedbackForm.rating + '/5') : ''"></span>
+                    </div>
+                </div>
+
+                <!-- CATEGORY PILLS -->
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1.5" x-text="lang === 'am' ? 'የአስተያየቱ ዘርፍ' : 'Feedback Category'"></label>
+                    <div class="grid grid-cols-3 gap-1.5 text-xs">
+                        <button type="button" @click="feedbackForm.category = 'FOOD'" :class="feedbackForm.category === 'FOOD' ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border'" class="py-2 px-2 rounded-xl transition text-center text-[11px]">
+                            🍔 Food
+                        </button>
+                        <button type="button" @click="feedbackForm.category = 'DRINKS'" :class="feedbackForm.category === 'DRINKS' ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border'" class="py-2 px-2 rounded-xl transition text-center text-[11px]">
+                            🍸 Drinks
+                        </button>
+                        <button type="button" @click="feedbackForm.category = 'ACOUSTIC'" :class="feedbackForm.category === 'ACOUSTIC' ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border'" class="py-2 px-2 rounded-xl transition text-center text-[11px]">
+                            🎸 Acoustic
+                        </button>
+                        <button type="button" @click="feedbackForm.category = 'SPORTS'" :class="feedbackForm.category === 'SPORTS' ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border'" class="py-2 px-2 rounded-xl transition text-center text-[11px]">
+                            ⚽ Big Screen
+                        </button>
+                        <button type="button" @click="feedbackForm.category = 'SERVICE'" :class="feedbackForm.category === 'SERVICE' ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border'" class="py-2 px-2 rounded-xl transition text-center text-[11px]">
+                            🤵 Service
+                        </button>
+                        <button type="button" @click="feedbackForm.category = 'SUGGESTION'" :class="feedbackForm.category === 'SUGGESTION' ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border'" class="py-2 px-2 rounded-xl transition text-center text-[11px]">
+                            💡 Idea
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MESSAGE TEXTAREA -->
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1" x-text="lang === 'am' ? 'አስተያየት ወይም ጥቆማዎ *' : 'Your Feedback or Suggestion *'"></label>
+                    <textarea x-model="feedbackForm.message" 
+                              rows="3" 
+                              required 
+                              :placeholder="t('feedback_msg_placeholder')" 
+                              class="w-full bg-dark-panel border border-dark-border rounded-xl px-3.5 py-2.5 text-white text-xs sm:text-sm focus:outline-none focus:border-gold resize-none"></textarea>
+                </div>
+
+                <!-- NAME & PHONE (OPTIONAL) -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-zinc-400 mb-1" x-text="lang === 'am' ? 'ስም (አማራጭ)' : 'Name (Optional)'"></label>
+                        <input type="text" x-model="feedbackForm.name" placeholder="Abebe" class="w-full bg-dark-panel border border-dark-border rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-gold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-zinc-400 mb-1" x-text="lang === 'am' ? 'ስልክ (አማራጭ)' : 'Phone (Optional)'"></label>
+                        <input type="tel" x-model="feedbackForm.phone" placeholder="+251..." class="w-full bg-dark-panel border border-dark-border rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-gold">
+                    </div>
+                </div>
+
+                <!-- ERROR ALERT -->
+                <div x-show="feedbackError" class="p-2.5 rounded-xl bg-red-950/60 border border-red-800 text-red-200 text-xs" x-text="feedbackError"></div>
+
+                <!-- SUBMIT BUTTON -->
+                <div class="pt-2 flex space-x-2">
+                    <button type="button" @click="showFeedbackModal = false" class="w-1/3 py-2.5 rounded-xl bg-dark-panel border border-dark-border text-zinc-300 text-xs font-semibold">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="feedbackSubmitting" class="w-2/3 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs sm:text-sm transition shadow-lg shadow-gold/25 flex items-center justify-center space-x-1.5 disabled:opacity-50">
+                        <span x-show="!feedbackSubmitting" x-text="t('feedback_submit_btn')">Send to Management</span>
+                        <span x-show="feedbackSubmitting">Sending...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- CLUB LOGOS DICTIONARY & APP JAVASCRIPT LOGIC -->
     <script>
         const FDATA_CDN = 'https://crests.football-data.org/';
@@ -1854,6 +2106,17 @@
                 lang: localStorage.getItem('GB_LANG') || 'en',
                 screen: 'home',
                 showVenueModal: false,
+                showFeedbackModal: false,
+                feedbackForm: {
+                    category: 'GENERAL',
+                    rating: 5,
+                    message: '',
+                    name: '',
+                    phone: '',
+                },
+                feedbackSubmitting: false,
+                feedbackSuccess: false,
+                feedbackError: '',
                 telegramBotUsername: '{{ config('services.telegram.bot_username', 'GuraBichaAddisBot') }}',
                 fixtureTab: 'ALL', // 'ALL' | 'TODAY' | 'SATURDAY' | 'RESULTS'
                 activeTableCode: null,
@@ -1994,7 +2257,14 @@
                         sat_evening_groove: 'Evening Acoustic Groove Session',
                         sat_groove_time: '7:00 PM – 11:30 PM · Live band starts 8:00 PM',
                         selected_badge: 'SELECTED',
-                        continue_tables: 'Continue to Table Selection'
+                        continue_tables: 'Continue to Table Selection',
+                        feedback_btn_title: 'Send Feedback & Suggestions',
+                        feedback_pill: 'Ideas',
+                        feedback_modal_title: 'Feedback & Suggestions',
+                        feedback_modal_subtitle: 'Help us make your Gura Bicha experience even better',
+                        feedback_thanks: 'Thank you for your valuable feedback! We appreciate you.',
+                        feedback_msg_placeholder: 'Tell us what you liked, recommend music, drinks, or suggest improvements...',
+                        feedback_submit_btn: 'Send to Management'
                     },
                     am: {
                         app_title: 'ጉራ ብቻ',
@@ -2049,7 +2319,14 @@
                         sat_evening_groove: 'የምሽት አኮስቲክ ሙዚቃ',
                         sat_groove_time: 'ከምሽቱ 1:00 – 5:30 · ባንዱ 2:00 ላይ ይጀምራል',
                         selected_badge: 'ተመርጧል',
-                        continue_tables: 'ወደ ጠረጴዛ ምርጫ ይቀጥሉ'
+                        continue_tables: 'ወደ ጠረጴዛ ምርጫ ይቀጥሉ',
+                        feedback_btn_title: 'አስተያየት እና ጥቆማ ይላኩ',
+                        feedback_pill: 'አስተያየት',
+                        feedback_modal_title: 'አስተያየት እና ጥቆማ',
+                        feedback_modal_subtitle: 'የጉራ ብቻ ቆይታዎ ይበልጥ የተሟላ እንዲሆን ሀሳብዎን ያካፍሉን',
+                        feedback_thanks: 'አስተያየትዎን ስለሰጡን ከልብ እናመሰግናለን!',
+                        feedback_msg_placeholder: 'የወደዱትን ወይም እንዲሻሻል የሚፈልጉትን ሙዚቃ፣ መጠጥ ወይም አገልግሎት ይንገሩን...',
+                        feedback_submit_btn: 'ለአስተዳደሩ ይላኩ'
                     }
                 },
 
@@ -2341,11 +2618,13 @@
                         }
                     } catch (e) {}
 
-                    // Handle URL hash navigation (e.g. #menu, #fixtures, #fanclub)
+                    // Handle URL hash navigation (e.g. #menu, #fixtures, #fanclub, #feedback)
                     if (window.location.hash && !this.activeTableCode) {
                         const target = window.location.hash.replace('#', '');
                         if (['home', 'fixtures', 'reserve', 'menu', 'fanclub', 'reservations'].includes(target)) {
                             this.setScreen(target);
+                        } else if (target === 'feedback') {
+                            this.openFeedback();
                         }
                     }
 
@@ -2552,6 +2831,76 @@
                         this.fanErrorMessage = (e && e.message) ? ('Error: ' + e.message) : 'Network issue. Please try again.';
                     } finally {
                         this.savingFan = false;
+                    }
+                },
+
+                openFeedback(cat = 'GENERAL') {
+                    this.feedbackForm.category = cat;
+                    this.feedbackSuccess = false;
+                    this.feedbackError = '';
+                    if (this.fanForm && this.fanForm.name) {
+                        this.feedbackForm.name = this.fanForm.name;
+                    } else if (this.telegramUser) {
+                        this.feedbackForm.name = ((this.telegramUser.first_name || '') + ' ' + (this.telegramUser.last_name || '')).trim();
+                    }
+                    if (this.fanForm && this.fanForm.phone) {
+                        this.feedbackForm.phone = this.fanForm.phone;
+                    }
+                    this.showFeedbackModal = true;
+                    if (this.tgWebApp && this.tgWebApp.HapticFeedback && typeof this.tgWebApp.HapticFeedback.impactOccurred === 'function') {
+                        try { this.tgWebApp.HapticFeedback.impactOccurred('light'); } catch(e) {}
+                    }
+                },
+
+                async submitFeedback() {
+                    if (!this.feedbackForm.message || this.feedbackForm.message.trim().length < 3) {
+                        this.feedbackError = this.lang === 'am' ? 'እባክዎን አስተያየትዎን ቢያንስ 3 ፊደላት ይጻፉ' : 'Please write your feedback or suggestion (minimum 3 characters).';
+                        return;
+                    }
+                    this.feedbackSubmitting = true;
+                    this.feedbackError = '';
+
+                    try {
+                        const payload = {
+                            category: this.feedbackForm.category,
+                            rating: this.feedbackForm.rating,
+                            message: this.feedbackForm.message.trim(),
+                            name: this.feedbackForm.name || (this.fanForm ? this.fanForm.name : '') || (this.telegramUser ? ((this.telegramUser.first_name || '') + ' ' + (this.telegramUser.last_name || '')).trim() : ''),
+                            phone: this.feedbackForm.phone || (this.fanForm ? this.fanForm.phone : ''),
+                            telegram_chat_id: this.telegramUserId ? String(this.telegramUserId) : null,
+                            telegram_username: this.telegramUsername ? this.telegramUsername.replace(/^@/, '') : null,
+                            source: 'MINIAPP'
+                        };
+
+                        const endpoint = (window.API_BASE ? window.API_BASE : '/api') + '/feedback';
+                        const res = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await res.json().catch(() => ({}));
+                        if (res.ok && data.success) {
+                            this.feedbackSuccess = true;
+                            this.feedbackForm.message = '';
+                            if (this.tgWebApp && this.tgWebApp.HapticFeedback && typeof this.tgWebApp.HapticFeedback.notificationOccurred === 'function') {
+                                try { this.tgWebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+                            }
+                            setTimeout(() => {
+                                this.feedbackSuccess = false;
+                                this.showFeedbackModal = false;
+                            }, 2500);
+                        } else {
+                            this.feedbackError = data.message || (this.lang === 'am' ? 'አስተያየት ማስቀመጥ አልተቻለም። እባክዎ እንደገና ይሞክሩ' : 'Unable to submit feedback. Please try again.');
+                        }
+                    } catch (e) {
+                        console.error('Feedback submission error:', e);
+                        this.feedbackError = this.lang === 'am' ? 'የግንኙነት ስህተት። እባክዎ እንደገና ይሞክሩ' : 'Network error. Please check your connection and try again.';
+                    } finally {
+                        this.feedbackSubmitting = false;
                     }
                 },
 

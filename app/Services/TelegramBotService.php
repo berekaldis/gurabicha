@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Feedback;
 use App\Models\Setting;
 use App\Models\SportMatch;
 use App\Models\TelegramBroadcast;
@@ -217,6 +218,7 @@ class TelegramBotService
             $cq = $update['callback_query'];
             $cqChatId = $cq['message']['chat']['id'] ?? null;
             $data = $cq['data'] ?? '';
+            $from = $cq['from'] ?? [];
             if ($cqChatId) {
                 if ($data === 'cmd_fixtures') {
                     $this->sendFixturesSummary($cqChatId);
@@ -224,6 +226,8 @@ class TelegramBotService
                     $this->sendMenuSummary($cqChatId);
                 } elseif ($data === 'cmd_venue') {
                     $this->sendVenueInfo($cqChatId);
+                } elseif ($data === 'cmd_feedback') {
+                    $this->handleFeedbackCommand($cqChatId, '/feedback', $from['first_name'] ?? null, $from['last_name'] ?? null, $from['username'] ?? null);
                 }
             }
             return;
@@ -292,6 +296,12 @@ class TelegramBotService
                 $this->sendVenueInfo($chatId);
                 break;
 
+            case '/feedback':
+            case '/suggest':
+            case '/suggestion':
+                $this->handleFeedbackCommand($chatId, $text, $firstName, $lastName, $username);
+                break;
+
             case '/help':
             default:
                 $this->sendHelp($chatId);
@@ -299,10 +309,91 @@ class TelegramBotService
         }
     }
 
+    /**
+     * Handle incoming feedback or suggestion command via Telegram Bot.
+     */
+    public function handleFeedbackCommand(int|string $chatId, string $text, ?string $firstName, ?string $lastName, ?string $username): void
+    {
+        $parts = preg_split('/\s+/', $text, 2);
+        $body = isset($parts[1]) ? trim($parts[1]) : '';
+        $senderName = trim(($firstName ?? '') . ' ' . ($lastName ?? '')) ?: 'Patron';
+
+        if (empty($body)) {
+            $msg = "✍️ <b>Gura Bicha Feedback & Suggestions</b>\n\n"
+                 . "We would love to hear from you! Please send your suggestions directly:\n\n"
+                 . "<code>/feedback [Your feedback here]</code>\n"
+                 . "or\n"
+                 . "<code>/suggest [Your suggestion here]</code>\n\n"
+                 . "<b>Example:</b>\n"
+                 . "<code>/feedback The acoustic band was phenomenal! Please add more cocktail varieties.</code>\n\n"
+                 . "🌟 <i>Every suggestion helps us deliver the ultimate Game & Groove experience!</i>";
+
+            $keyboard = [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Open Mini App Feedback',
+                            'web_app' => ['url' => rtrim($this->webAppUrl, '/') . '#feedback'],
+                        ],
+                    ],
+                ],
+            ];
+
+            $this->sendMessage($chatId, $msg, $keyboard);
+            return;
+        }
+
+        try {
+            $fb = Feedback::create([
+                'telegram_chat_id' => (string) $chatId,
+                'telegram_username' => $username,
+                'name' => $senderName,
+                'category' => (str_starts_with(strtolower($text), '/suggest')) ? 'SUGGESTION' : 'GENERAL',
+                'rating' => 5,
+                'message' => $body,
+                'status' => 'NEW',
+                'source' => 'BOT',
+            ]);
+
+            // Notify Admin if telegram_admin_chat_id is set
+            $adminChatId = Setting::get('telegram_admin_chat_id');
+            if ($adminChatId && $adminChatId != $chatId) {
+                $userHandle = $username ? "@{$username}" : $senderName;
+                $adminMsg = "💬 <b>New Telegram Bot Feedback!</b>\n\n"
+                    . "<b>From:</b> {$userHandle} (ID: {$chatId})\n"
+                    . "<b>Category:</b> {$fb->category}\n\n"
+                    . "<b>Message:</b>\n" . htmlspecialchars($body) . "\n\n"
+                    . "📍 <i>Gura Bicha Mexico</i>";
+                $this->sendMessage($adminChatId, $adminMsg);
+            }
+
+            $thankMsg = "🙏 <b>Thank You, {$senderName}!</b>\n\n"
+                      . "Your feedback has been saved and shared directly with Gura Bicha management.\n\n"
+                      . "<i>We appreciate you helping us make Addis Ababa's premier sports & acoustic lounge even better!</i> ✨";
+
+            $keyboard = [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Launch Mini App',
+                            'web_app' => ['url' => $this->webAppUrl],
+                        ],
+                    ],
+                ],
+            ];
+
+            $this->sendMessage($chatId, $thankMsg, $keyboard);
+
+        } catch (\Throwable $e) {
+            Log::error("Failed to save feedback from Telegram {$chatId}: " . $e->getMessage());
+            $this->sendMessage($chatId, "⚠️ Sorry, we could not save your feedback right now. Please try again or use the Mini App.");
+        }
+    }
+
     protected function sendStartWelcome(int|string $chatId, string $name): void
     {
         $text = "⚽🎸 <b>Welcome to Gura Bicha!</b>\n\n"
-              . "Selam <b>{$name}</b>! 👋 Your premier Addis Ababa destination for <b>4K Premier League matchdays</b> and soulful <b>Live Acoustic nights</b> at Mexico, Chamber of Commerce Building.\n\n"
+              . "Selam <b>{$name}</b>! 👋 Your premier Addis Ababa destination for <b>Big Screen Premier League matchdays</b> and soulful <b>Live Acoustic nights</b> at Mexico, Gura Bicha.\n\n"
               . "Tap below to get started:";
 
         $keyboard = [
@@ -331,6 +422,12 @@ class TelegramBotService
                     [
                         'text' => '📍 Location & Hours',
                         'callback_data' => 'cmd_venue',
+                    ],
+                ],
+                [
+                    [
+                        'text' => '💬 Feedback & Suggestion',
+                        'callback_data' => 'cmd_feedback',
                     ],
                 ],
             ],
@@ -492,7 +589,7 @@ class TelegramBotService
         $phone = Setting::get('venue_phone', '+251905888724');
 
         $text = "📍 <b>Gura Bicha Sports Bar & Lounge</b>\n\n"
-              . "🏢 <b>Location:</b> Chamber of Commerce Bldg, Mexico, Addis Ababa\n"
+              . "🏢 <b>Location:</b> Mexico, Gura Bicha, Addis Ababa\n"
               . "⏰ <b>Hours:</b> Daily 12:00 PM – 2:00 AM\n"
               . "🎸 <b>Live Acoustic:</b> 7:00 PM – 11:30 PM\n"
               . "📞 <b>Phone:</b> {$phone}";
@@ -523,9 +620,11 @@ class TelegramBotService
               . "• /fixtures — Current matches & kickoffs\n"
               . "• /menu — Food & drink prices\n"
               . "• /reserve — Acoustic table booking\n"
-              . "• /live — Real-time 4K screen scores\n"
+              . "• /live — Real-time big screen scores\n"
+              . "• /feedback [msg] — Send suggestions & feedback to management\n"
+              . "• /suggest [idea] — Suggest drinks, food, songs or matches\n"
               . "• /venue — Location, map & hours\n\n"
-              . "📍 <i>Mexico, Chamber of Commerce Building</i>";
+              . "📍 <i>Mexico, Gura Bicha</i>";
 
         $keyboard = [
             'inline_keyboard' => [

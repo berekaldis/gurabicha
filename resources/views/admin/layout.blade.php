@@ -209,6 +209,20 @@
         html.light [class*="bg-black/"] .text-white,
         html.light .bg-zinc-900 .text-white,
         html.light .bg-zinc-950 .text-white,
+        html.light .bg-red-600,
+        html.light .bg-red-600 *,
+        html.light button.bg-red-600,
+        html.light button.bg-red-600 *,
+        html.light .bg-red-700,
+        html.light .bg-red-700 *,
+        html.light .bg-emerald-600,
+        html.light .bg-emerald-600 *,
+        html.light button.bg-emerald-600,
+        html.light button.bg-emerald-600 *,
+        html.light .bg-blue-600,
+        html.light .bg-blue-600 *,
+        html.light button.bg-blue-600,
+        html.light button.bg-blue-600 *,
         html.light .bg-purple-600,
         html.light .bg-purple-600 *,
         html.light button.bg-purple-600,
@@ -673,6 +687,23 @@
                     @if(isset($sidebarCounts['customers']) && $sidebarCounts['customers'] > 0)
                         <span x-show="!sidebarCollapsed" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">{{ $sidebarCounts['customers'] }} fans</span>
                         <span x-show="sidebarCollapsed" class="hidden md:block absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400"></span>
+                    @endif
+                </a>
+
+                <a href="{{ route('admin.feedbacks.index') }}"
+                   :title="sidebarCollapsed ? 'Feedback & Suggestions' : ''"
+                   :class="sidebarCollapsed ? 'md:justify-center md:px-2' : 'justify-between px-3'"
+                   class="flex items-center py-2.5 rounded-xl text-sm font-medium transition relative {{ request()->routeIs('admin.feedbacks.*') ? 'bg-gold/15 text-gold border border-gold/40 shadow-sm' : 'text-zinc-400 hover:text-white hover:bg-admin-panel' }}">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        <span x-show="!sidebarCollapsed" class="whitespace-nowrap transition-opacity duration-200">Feedback & Ideas</span>
+                    </div>
+                    @php
+                        $newFeedbackCount = \App\Models\Feedback::where('status', 'NEW')->count();
+                    @endphp
+                    @if($newFeedbackCount > 0)
+                        <span x-show="!sidebarCollapsed" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">{{ $newFeedbackCount }} new</span>
+                        <span x-show="sidebarCollapsed" class="hidden md:block absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     @endif
                 </a>
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\CustomerProfileController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\MatchController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\ReservationController;
@@ -48,6 +49,9 @@ Route::delete('/reservations/{id}', [ReservationController::class, 'destroy']);
 // Customer Info & Fan Profile
 Route::get('/customer/profile', [CustomerProfileController::class, 'show']);
 Route::post('/customer/profile', [CustomerProfileController::class, 'store']);
+
+// Customer Feedback & Suggestions
+Route::post('/feedback', [FeedbackController::class, 'store']);
 
 // Telegram Bot Webhook & Mini App Endpoints
 Route::post('/telegram/webhook', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'webhook']);

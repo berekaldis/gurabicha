@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ChangePasswordController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\MatchController as AdminMatchController;
 use App\Http\Controllers\Admin\MenuItemController as AdminMenuItemController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
@@ -90,6 +91,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         // Customer Registry & Fan Club Alerts
         Route::resource('customers', AdminCustomerController::class)->except(['show', 'create', 'edit']);
         Route::post('customers/broadcast-alert', [AdminCustomerController::class, 'sendAlert'])->name('customers.alert');
+
+        // Customer Feedback & Suggestions
+        Route::get('feedbacks', [AdminFeedbackController::class, 'index'])->name('feedbacks.index');
+        Route::patch('feedbacks/{feedback}/status', [AdminFeedbackController::class, 'updateStatus'])->name('feedbacks.status');
+        Route::delete('feedbacks/{feedback}', [AdminFeedbackController::class, 'destroy'])->name('feedbacks.destroy');
 
         // Telegram Bot Configuration & Broadcast Announcements
         Route::get('telegram', [AdminTelegramConfigController::class, 'index'])->name('telegram.index');
