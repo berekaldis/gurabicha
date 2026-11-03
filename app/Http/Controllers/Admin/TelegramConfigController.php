@@ -26,6 +26,7 @@ class TelegramConfigController extends Controller
             'telegram_bot_token' => Setting::get('telegram_bot_token', (string) config('services.telegram.bot_token', env('TELEGRAM_BOT_TOKEN', ''))),
             'telegram_bot_username' => Setting::get('telegram_bot_username', (string) config('services.telegram.bot_username', env('TELEGRAM_BOT_USERNAME', 'GuraBichaAddisBot'))),
             'telegram_webapp_url' => Setting::get('telegram_webapp_url', (string) config('services.telegram.webapp_url', env('TELEGRAM_WEBAPP_URL', url('/')))),
+            'telegram_admin_chat_id' => Setting::get('telegram_admin_chat_id', ''),
         ];
 
         // Telegram Bot diagnostics
@@ -98,6 +99,7 @@ class TelegramConfigController extends Controller
             'telegram_bot_username' => ['nullable', 'string', 'max:100'],
             'telegram_webapp_url' => ['nullable', 'url', 'max:255'],
             'telegram_webhook_url' => ['nullable', 'url', 'max:500'],
+            'telegram_admin_chat_id' => ['nullable', 'string', 'max:50'],
         ]);
 
         foreach ($validated as $key => $value) {
@@ -105,7 +107,37 @@ class TelegramConfigController extends Controller
         }
 
         return redirect()->route('admin.telegram.index')
-            ->with('success', 'Telegram credentials and configuration saved successfully!');
+            ->with('success', 'Telegram credentials, Admin Chat ID, and configuration saved successfully!');
+    }
+
+    public function sendTestNotification(Request $request): RedirectResponse
+    {
+        $adminChatId = Setting::get('telegram_admin_chat_id');
+
+        if (empty($adminChatId)) {
+            return redirect()->route('admin.telegram.index')
+                ->with('error', 'Please enter and save your Admin Telegram Chat ID first before sending a test notification.');
+        }
+
+        $botUsername = $this->botService->getBotUsername();
+        $testMsg = "🔔 <b>Gura Bicha Admin Notification System Test</b>\n\n"
+                 . "✅ <b>Success!</b> Your Admin Telegram Chat ID (<code>{$adminChatId}</code>) is active and verified.\n\n"
+                 . "You will receive real-time alerts here whenever:\n"
+                 . "• A customer submits a new table reservation request (Pending)\n"
+                 . "• A customer cancels a reservation\n"
+                 . "• A patron sends feedback or suggestions via Mini App or Bot\n\n"
+                 . "📍 <i>Gura Bicha Sports Bar & Acoustic Lounge • Mexico, Addis Ababa</i>";
+
+        $res = $this->botService->sendMessage($adminChatId, $testMsg);
+
+        if (!empty($res['ok'])) {
+            return redirect()->route('admin.telegram.index')
+                ->with('success', "Test notification successfully sent to Admin Telegram Chat ID {$adminChatId}! Please check your Telegram chat.");
+        }
+
+        $error = $res['description'] ?? $res['error'] ?? 'Telegram API error';
+        return redirect()->route('admin.telegram.index')
+            ->with('error', "Failed to send message to Telegram Chat ID {$adminChatId}: {$error}. Ensure you have pressed /start on @{$botUsername} first.");
     }
 
     public function setWebhook(Request $request): RedirectResponse

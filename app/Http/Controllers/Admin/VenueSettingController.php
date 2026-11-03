@@ -24,6 +24,7 @@ class VenueSettingController extends Controller
             'google_maps_embed' => Setting::get('google_maps_embed', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.540118350811!2d38.7441584!3d9.0143899!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b8591e5c54c33%3A0xb1a9c37e6f851eb!2sAddis%20Ababa%20Chamber%20of%20Commerce!5e0!3m2!1sen!2set!4v1700000000000'),
             'telegram_bot_token' => Setting::get('telegram_bot_token', (string) config('services.telegram.bot_token', env('TELEGRAM_BOT_TOKEN', ''))),
             'telegram_bot_username' => Setting::get('telegram_bot_username', (string) config('services.telegram.bot_username', env('TELEGRAM_BOT_USERNAME', 'GuraBichaAddisBot'))),
+            'telegram_admin_chat_id' => Setting::get('telegram_admin_chat_id', ''),
         ];
 
         $menuPublicUrl = url('/#menu');
@@ -45,6 +46,7 @@ class VenueSettingController extends Controller
             'google_maps_embed' => ['nullable', 'string', 'max:1000'],
             'telegram_bot_token' => ['nullable', 'string', 'max:255'],
             'telegram_bot_username' => ['nullable', 'string', 'max:100'],
+            'telegram_admin_chat_id' => ['nullable', 'string', 'max:50'],
         ]);
 
         foreach ($validated as $key => $value) {

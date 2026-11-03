@@ -485,17 +485,97 @@
                         <p class="text-[10px] text-zinc-500 mt-1">Must be HTTPS when deployed live for Telegram Mini App.</p>
                     </div>
 
-                    <div class="pt-2 flex items-center justify-between">
-                        <a href="https://t.me/{{ $settings['telegram_bot_username'] }}" target="_blank" class="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1">
-                            <span>Open Bot in Telegram</span>
-                            <span>↗</span>
-                        </a>
+                    <!-- ADMIN TELEGRAM CHAT ID (RECEIVE RESERVATIONS & FEEDBACK) -->
+                    <div class="pt-2 border-t border-admin-border">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-gold uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>🔔</span>
+                                <span>Admin Telegram Chat ID</span>
+                            </label>
+                            @if(!empty($settings['telegram_admin_chat_id']))
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    ✓ Active ID: {{ $settings['telegram_admin_chat_id'] }}
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                                    ⚠️ Not Configured
+                                </span>
+                            @endif
+                        </div>
+                        <div class="relative flex items-center">
+                            <input type="text"
+                                name="telegram_admin_chat_id"
+                                id="telegram_admin_chat_id"
+                                value="{{ old('telegram_admin_chat_id', $settings['telegram_admin_chat_id']) }}"
+                                placeholder="e.g. 123456789"
+                                class="w-full bg-admin-panel border border-gold/40 rounded-xl px-3.5 py-2.5 text-xs font-mono text-gold focus:outline-none focus:border-gold">
+                        </div>
+                        <p class="text-[10px] text-zinc-400 mt-1.5 leading-relaxed">
+                            The designated Telegram Chat ID where Gura Bicha Admin receives instant notifications when customers <b>reserve a table (Pending)</b>, <b>cancel a booking</b>, or submit <b>patron feedback/suggestions</b>.
+                        </p>
 
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-sky-600/30">
-                            Save Credentials
-                        </button>
+                        <!-- Guide on how to get Chat ID -->
+                        <div class="mt-2.5 p-3 rounded-xl bg-admin-panel/80 border border-admin-border text-[11px] text-zinc-300 space-y-1">
+                            <div class="font-bold text-white flex items-center space-x-1">
+                                <span>💡</span>
+                                <span>How to find your Telegram Chat ID:</span>
+                            </div>
+                            <ol class="list-decimal list-inside space-y-0.5 text-zinc-400 text-[10px]">
+                                <li>Open Telegram and start <a href="https://t.me/userinfobot" target="_blank" class="text-sky-400 underline font-mono">@userinfobot</a> — it immediately replies with your numeric <b>Id</b>.</li>
+                                <li>Or send <code class="text-gold">/start</code> to your venue bot <a href="https://t.me/{{ $settings['telegram_bot_username'] }}" target="_blank" class="text-sky-400 underline font-mono">@{{ $settings['telegram_bot_username'] }}</a>.</li>
+                                <li>Copy that numeric ID into the field above and click <b>Save Credentials</b>.</li>
+                            </ol>
+                        </div>
+
+                        <!-- Quick Select from Recent Subscribers -->
+                        @if($subscribers->count() > 0)
+                            <div class="mt-2.5 pt-2 border-t border-admin-border/60">
+                                <span class="text-[10px] text-zinc-400 block mb-1 font-semibold uppercase tracking-wider">Quick Fill from Recent Subscribers:</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach($subscribers->take(4) as $sub)
+                                        <button type="button"
+                                                onclick="document.getElementById('telegram_admin_chat_id').value = '{{ $sub->chat_id }}'"
+                                                class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 border border-admin-border text-[10px] text-zinc-300 hover:text-white transition flex items-center space-x-1">
+                                            <span>👤 {{ $sub->first_name ?? $sub->username ?? 'User' }}</span>
+                                            <span class="font-mono text-gold">({{ $sub->chat_id }})</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-between border-t border-admin-border">
+                        <div class="flex items-center space-x-3">
+                            <a href="https://t.me/{{ $settings['telegram_bot_username'] }}" target="_blank" class="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1">
+                                <span>Open Bot in Telegram</span>
+                                <span>↗</span>
+                            </a>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-sky-600/30">
+                                Save Credentials & Admin ID
+                            </button>
+                        </div>
                     </div>
                 </form>
+
+                <!-- TEST NOTIFICATION FORM (IF ADMIN CHAT ID SET) -->
+                @if(!empty($settings['telegram_admin_chat_id']))
+                    <div class="pt-3 border-t border-admin-border flex items-center justify-between">
+                        <div class="text-[11px] text-zinc-400">
+                            Verify that your phone receives alerts:
+                        </div>
+                        <form method="POST" action="{{ route('telegram.test-notification') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/20">
+                                <span>🔔</span>
+                                <span>Send Test Notification to Admin</span>
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
 
             <!-- WEBHOOK DIAGNOSTICS & MANAGEMENT -->

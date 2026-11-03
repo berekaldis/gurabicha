@@ -178,6 +178,28 @@
                             class="w-full bg-admin-panel border border-admin-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold">
                     </div>
 
+                    <!-- ADMIN TELEGRAM CHAT ID -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-gold uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>🔔</span>
+                                <span>Admin Telegram Chat ID (Reservation & Feedback Alerts)</span>
+                            </label>
+                            @if(!empty($settings['telegram_admin_chat_id']))
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    ✓ Active ID: {{ $settings['telegram_admin_chat_id'] }}
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                                    ⚠️ Not Configured
+                                </span>
+                            @endif
+                        </div>
+                        <input type="text" name="telegram_admin_chat_id" value="{{ old('telegram_admin_chat_id', $settings['telegram_admin_chat_id']) }}" placeholder="e.g. 123456789"
+                            class="w-full bg-admin-panel border border-gold/40 rounded-xl px-4 py-2.5 text-sm font-mono text-gold focus:outline-none focus:border-gold">
+                        <p class="text-[10px] text-zinc-400 mt-1">Get your numeric ID from <a href="https://t.me/userinfobot" target="_blank" class="text-sky-400 underline font-mono">@userinfobot</a>. Instant alerts for customer reservations and feedback are dispatched to this Chat ID.</p>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">Google Maps Direct Link</label>
                         <input type="url" name="google_maps_url" value="{{ old('google_maps_url', $settings['google_maps_url']) }}" required

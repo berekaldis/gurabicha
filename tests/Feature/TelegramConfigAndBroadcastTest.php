@@ -212,4 +212,48 @@ class TelegramConfigAndBroadcastTest extends TestCase
         $response->assertSee('Venue Settings');
         $response->assertSee('Open Telegram Config');
     }
+
+    public function test_admin_can_update_admin_chat_id(): void
+    {
+        $admin = User::where('email', 'admin@gurabicha.com')->first();
+        $response = $this->actingAs($admin)->post('/admin/telegram/settings', [
+            'telegram_admin_chat_id' => '123456789',
+        ]);
+        $response->assertRedirect('/admin/telegram');
+        $response->assertSessionHas('success');
+        $this->assertEquals('123456789', Setting::get('telegram_admin_chat_id'));
+    }
+
+    public function test_admin_can_send_test_notification_to_admin_chat(): void
+    {
+        Http::fake([
+            'https://api.telegram.org/*/sendMessage' => Http::response([
+                'ok' => true,
+                'result' => ['message_id' => 77777],
+            ], 200),
+        ]);
+
+        Setting::set('telegram_admin_chat_id', '99887766');
+        $admin = User::where('email', 'admin@gurabicha.com')->first();
+
+        $response = $this->actingAs($admin)->post('/admin/telegram/test-notification');
+        $response->assertRedirect('/admin/telegram');
+        $response->assertSessionHas('success');
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'sendMessage')
+                && str_contains($request->body(), '99887766')
+                && str_contains($request->body(), 'Admin Notification System Test');
+        });
+    }
+
+    public function test_admin_test_notification_fails_gracefully_when_chat_id_is_empty(): void
+    {
+        Setting::set('telegram_admin_chat_id', '');
+        $admin = User::where('email', 'admin@gurabicha.com')->first();
+
+        $response = $this->actingAs($admin)->post('/admin/telegram/test-notification');
+        $response->assertRedirect('/admin/telegram');
+        $response->assertSessionHas('error');
+    }
 }

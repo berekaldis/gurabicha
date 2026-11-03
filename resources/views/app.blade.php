@@ -211,22 +211,22 @@
         }
 
         /* Light Mode High-Contrast Typography (protected against buttons & badges) */
-        html.light .text-white:not(button *):not(.bg-gold *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-emerald-600 *):not(.bg-purple-600 *):not(.bg-blue-600 *):not([class*="bg-black/"] *):not(.hero-banner-card *) {
+        html.light .text-white:not(button *):not(.bg-gold *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-emerald-600 *):not(.bg-purple-600 *):not(.bg-blue-600 *):not([class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *):not(.hero-banner-card *) {
             color: #0f172a;
         }
-        html.light .text-zinc-100:not(button *):not([class*="bg-black/"] *):not(.hero-banner-card *) {
+        html.light .text-zinc-100:not(button *):not([class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *):not(.hero-banner-card *) {
             color: #0f172a;
         }
-        html.light .text-zinc-200:not(button *):not([class*="bg-black/"] *):not(.hero-banner-card *) {
+        html.light .text-zinc-200:not(button *):not([class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *):not(.hero-banner-card *) {
             color: #1e293b;
         }
-        html.light .text-zinc-300:not([class*="bg-black/"] *):not(.hero-banner-card *) {
+        html.light .text-zinc-300:not([class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *):not(.hero-banner-card *) {
             color: #334155;
         }
-        html.light .text-zinc-400:not([class*="bg-black/"] *):not(.hero-banner-card *) {
+        html.light .text-zinc-400:not([class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *):not(.hero-banner-card *) {
             color: #64748b;
         }
-        html.light .text-zinc-500:not([class*="bg-black/"] *):not(.hero-banner-card *) {
+        html.light .text-zinc-500:not([class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *):not(.hero-banner-card *) {
             color: #64748b;
         }
 
@@ -321,10 +321,10 @@
         html.light .bg-blue-600 *,
         html.light .bg-emerald-600,
         html.light .bg-emerald-600 *,
-        html.light .bg-black,
-        html.light .bg-black *,
-        html.light [class*="bg-black/"],
-        html.light [class*="bg-black/"] *,
+        html.light .bg-black:not(.fixed):not([class*="fixed"]),
+        html.light .bg-black:not(.fixed):not([class*="fixed"]) *,
+        html.light [class*="bg-black/"]:not(.fixed):not([class*="fixed"]),
+        html.light [class*="bg-black/"]:not(.fixed):not([class*="fixed"]) *,
         html.light .hero-banner-card,
         html.light .hero-banner-card *,
         html.light .hero-banner-card h2,
@@ -343,9 +343,9 @@
         }
 
         /* Gold text over dark photo badges stays golden */
-        html.light [class*="bg-black/"] .text-gold,
-        html.light [class*="bg-black"] .text-gold,
-        html.light [class*="bg-zinc-900"] .text-gold,
+        html.light [class*="bg-black/"]:not(.fixed):not([class*="fixed"]) .text-gold,
+        html.light [class*="bg-black"]:not(.fixed):not([class*="fixed"]) .text-gold,
+        html.light [class*="bg-zinc-900"]:not(.fixed):not([class*="fixed"]) .text-gold,
         html.light .hero-banner-card .text-gold {
             color: #fbbf24 !important;
         }
@@ -353,26 +353,96 @@
         /* Form Inputs & Controls in Light Mode */
         html.light input,
         html.light textarea,
-        html.light select {
+        html.light select,
+        html.light input.text-white,
+        html.light textarea.text-white,
+        html.light select.text-white,
+        html.light .bg-dark-card input,
+        html.light .bg-dark-card textarea,
+        html.light .bg-dark-card select,
+        html.light [x-show*="Modal"] input,
+        html.light [x-show*="Modal"] textarea,
+        html.light [x-show*="Modal"] select,
+        html.light [x-show*="Modal"] input.text-white,
+        html.light [x-show*="Modal"] textarea.text-white,
+        html.light [x-show*="Modal"] select.text-white {
             background-color: #ffffff !important;
             color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
             border-color: #cbd5e1 !important;
+            opacity: 1 !important;
         }
         html.light input:focus,
         html.light textarea:focus,
-        html.light select:focus {
+        html.light select:focus,
+        html.light [x-show*="Modal"] input:focus,
+        html.light [x-show*="Modal"] textarea:focus,
+        html.light [x-show*="Modal"] select:focus {
             border-color: #b45309 !important;
             outline: none;
             box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.15) !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
         }
         html.light input::placeholder,
         html.light textarea::placeholder {
             color: #94a3b8 !important;
+            -webkit-text-fill-color: #94a3b8 !important;
+        }
+        html.light input[type="date"]::-webkit-datetime-edit,
+        html.light input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+        html.light input[type="date"]::-webkit-datetime-edit-text,
+        html.light input[type="date"]::-webkit-datetime-edit-month-field,
+        html.light input[type="date"]::-webkit-datetime-edit-day-field,
+        html.light input[type="date"]::-webkit-datetime-edit-year-field {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
         }
         html.light input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(30%) sepia(90%) saturate(1500%) hue-rotate(10deg);
             opacity: 0.9 !important;
             cursor: pointer;
+        }
+
+        /* Modal Dialogs in Light Mode */
+        html.light [x-show*="Modal"] .bg-dark-card,
+        html.light [x-show*="preview"] .bg-dark-card {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+        html.light [x-show*="Modal"] h1,
+        html.light [x-show*="Modal"] h2,
+        html.light [x-show*="Modal"] h3,
+        html.light [x-show*="Modal"] h4,
+        html.light [x-show*="Modal"] label,
+        html.light [x-show*="Modal"] p,
+        html.light [x-show*="Modal"] .text-white,
+        html.light [x-show*="Modal"] span:not(.bg-gold *):not(.bg-red-600 *):not(.bg-emerald-600 *):not(.bg-blue-600 *),
+        html.light [x-show*="preview"] h1,
+        html.light [x-show*="preview"] h2,
+        html.light [x-show*="preview"] h3,
+        html.light [x-show*="preview"] label,
+        html.light [x-show*="preview"] p,
+        html.light [x-show*="preview"] .text-white,
+        html.light [x-show*="preview"] span:not(.bg-gold *):not(.bg-red-600 *):not(.bg-emerald-600 *):not(.bg-blue-600 *) {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+
+        /* Dropdown Options */
+        html.light option,
+        html.light select option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+        html.dark option,
+        html.dark select option {
+            background-color: #141418 !important;
+            color: #f4f4f5 !important;
+            -webkit-text-fill-color: #f4f4f5 !important;
         }
 
         /* Status & Category Badges in Light Mode */

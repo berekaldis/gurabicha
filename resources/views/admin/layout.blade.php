@@ -139,23 +139,54 @@
         }
 
         /* High-contrast typography */
-        html.light .text-white:not(button *):not(.bg-gold *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-emerald-600 *):not(.bg-blue-600 *):not(.bg-purple-600 *):not(.bg-sky-600 *):not(.bg-black *):not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+        html.light .text-white:not(button *):not(.bg-gold *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-emerald-600 *):not(.bg-blue-600 *):not(.bg-purple-600 *):not(.bg-sky-600 *):not(.bg-black:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-900:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-950:not(.fixed):not([class*="fixed"]) *) {
             color: #0f172a !important; /* Slate 900 */
         }
-        html.light .text-zinc-100:not(button *):not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+        html.light .text-zinc-100:not(button *):not(.bg-zinc-900:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-950:not(.fixed):not([class*="fixed"]) *) {
             color: #0f172a !important;
         }
-        html.light .text-zinc-200:not(button *):not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+        html.light .text-zinc-200:not(button *):not(.bg-zinc-900:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-950:not(.fixed):not([class*="fixed"]) *) {
             color: #1e293b !important; /* Slate 800 */
         }
-        html.light .text-zinc-300:not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+        html.light .text-zinc-300:not(.bg-zinc-900:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-950:not(.fixed):not([class*="fixed"]) *) {
             color: #334155 !important; /* Slate 700 */
         }
-        html.light .text-zinc-400:not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+        html.light .text-zinc-400:not(.bg-zinc-900:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-950:not(.fixed):not([class*="fixed"]) *) {
             color: #475569 !important; /* Slate 600 high legibility */
         }
-        html.light .text-zinc-500:not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+        html.light .text-zinc-500:not(.bg-zinc-900:not(.fixed):not([class*="fixed"]) *):not(.bg-zinc-950:not(.fixed):not([class*="fixed"]) *) {
             color: #64748b !important; /* Slate 500 */
+        }
+
+        /* Guarantee dark text inside all Admin cards and modals regardless of classes */
+        html.light .bg-admin-card,
+        html.light [x-show*="Modal"] .bg-admin-card {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.12) !important;
+        }
+        html.light .bg-admin-card h1,
+        html.light .bg-admin-card h2,
+        html.light .bg-admin-card h3,
+        html.light [x-show*="Modal"] h1,
+        html.light [x-show*="Modal"] h2,
+        html.light [x-show*="Modal"] h3 {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+        html.light .bg-admin-card label,
+        html.light [x-show*="Modal"] label {
+            color: #334155 !important;
+            -webkit-text-fill-color: #334155 !important;
+            font-weight: 600 !important;
+        }
+        html.light .bg-admin-card .text-white,
+        html.light [x-show*="Modal"] .text-white,
+        html.light [x-show*="Modal"] p,
+        html.light [x-show*="Modal"] span:not(.bg-gold *):not(.bg-red-600 *):not(.bg-emerald-600 *):not(.bg-blue-600 *) {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
         }
 
         /* Rich Golden Amber in Light Mode (replaces hard-to-read bright yellow) */
@@ -197,18 +228,19 @@
         /* ------------------------------------------------------------- */
         /* CRITICAL PROTECTION FOR DARK BADGES, OVERLAYS & PHOTO PILLS   */
         /* (Prevents text from becoming invisible black-on-black)        */
+        /* (DO NOT match modal backdrop overlays!)                       */
         /* ------------------------------------------------------------- */
-        html.light .bg-black,
-        html.light [class*="bg-black/"],
-        html.light .bg-zinc-900,
-        html.light .bg-zinc-950 {
+        html.light .bg-black:not(.fixed):not([class*="fixed"]),
+        html.light [class*="bg-black/"]:not(.fixed):not([class*="fixed"]),
+        html.light .bg-zinc-900:not(.fixed):not([class*="fixed"]),
+        html.light .bg-zinc-950:not(.fixed):not([class*="fixed"]) {
             color: #ffffff !important;
         }
 
-        html.light .bg-black .text-white,
-        html.light [class*="bg-black/"] .text-white,
-        html.light .bg-zinc-900 .text-white,
-        html.light .bg-zinc-950 .text-white,
+        html.light .bg-black:not(.fixed):not([class*="fixed"]) .text-white,
+        html.light [class*="bg-black/"]:not(.fixed):not([class*="fixed"]) .text-white,
+        html.light .bg-zinc-900:not(.fixed):not([class*="fixed"]) .text-white,
+        html.light .bg-zinc-950:not(.fixed):not([class*="fixed"]) .text-white,
         html.light .bg-red-600,
         html.light .bg-red-600 *,
         html.light button.bg-red-600,
@@ -457,24 +489,55 @@
             color: #0f172a !important;
         }
 
-        /* Form Inputs & Controls */
+        /* Form Inputs & Controls in Light Mode */
         html.light input,
         html.light select,
-        html.light textarea {
+        html.light textarea,
+        html.light input.text-white,
+        html.light select.text-white,
+        html.light textarea.text-white,
+        html.light .bg-admin-card input,
+        html.light .bg-admin-card select,
+        html.light .bg-admin-card textarea,
+        html.light [x-show*="Modal"] input,
+        html.light [x-show*="Modal"] select,
+        html.light [x-show*="Modal"] textarea,
+        html.light [x-show*="Modal"] input.text-white,
+        html.light [x-show*="Modal"] select.text-white,
+        html.light [x-show*="Modal"] textarea.text-white {
             background-color: #ffffff !important;
             color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
             border-color: #cbd5e1 !important;
+            opacity: 1 !important;
         }
         html.light input:focus,
         html.light select:focus,
-        html.light textarea:focus {
+        html.light textarea:focus,
+        html.light [x-show*="Modal"] input:focus,
+        html.light [x-show*="Modal"] select:focus,
+        html.light [x-show*="Modal"] textarea:focus {
             border-color: #b45309 !important;
             outline: none;
             box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2) !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
         }
         html.light input::placeholder,
         html.light textarea::placeholder {
             color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
+        }
+
+        /* Chrome / Edge / WebKit Date Input Inner Text */
+        html.light input[type="date"]::-webkit-datetime-edit,
+        html.light input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+        html.light input[type="date"]::-webkit-datetime-edit-text,
+        html.light input[type="date"]::-webkit-datetime-edit-month-field,
+        html.light input[type="date"]::-webkit-datetime-edit-day-field,
+        html.light input[type="date"]::-webkit-datetime-edit-year-field {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
         }
 
         /* Date picker calendar indicator */
@@ -482,6 +545,20 @@
             filter: invert(30%) sepia(90%) saturate(1500%) hue-rotate(10deg);
             opacity: 0.9 !important;
             cursor: pointer;
+        }
+
+        /* Select Options Dropdown List */
+        html.light option,
+        html.light select option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+        html.dark option,
+        html.dark select option {
+            background-color: #141418 !important;
+            color: #f4f4f5 !important;
+            -webkit-text-fill-color: #f4f4f5 !important;
         }
 
         /* Navigation Links Hover & Active in Sidebar */

@@ -100,6 +100,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         // Telegram Bot Configuration & Broadcast Announcements
         Route::get('telegram', [AdminTelegramConfigController::class, 'index'])->name('telegram.index');
         Route::post('telegram/settings', [AdminTelegramConfigController::class, 'updateSettings'])->name('telegram.settings.update');
+        Route::post('telegram/test-notification', [AdminTelegramConfigController::class, 'sendTestNotification'])->name('telegram.test-notification');
         Route::post('telegram/webhook/set', [AdminTelegramConfigController::class, 'setWebhook'])->name('telegram.webhook.set');
         Route::post('telegram/webhook/delete', [AdminTelegramConfigController::class, 'deleteWebhook'])->name('telegram.webhook.delete');
         Route::post('telegram/broadcast', [AdminTelegramConfigController::class, 'broadcast'])->name('telegram.broadcast');
