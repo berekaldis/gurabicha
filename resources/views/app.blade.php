@@ -7,12 +7,21 @@
     <meta name="description" content="Addis Ababa's premier sports bar & acoustic lounge in Mexico, inside Chamber of Commerce Building. Live Premier League, Champions League, Saturday Acoustic Sessions & authentic Ethiopian cuisine.">
     <meta name="theme-color" content="#060709">
 
-    <!-- Immediate Theme Initialization Script (prevents theme flash) -->
+    <!-- Immediate Theme & Telegram Insets Initialization Script (prevents theme flash & Telegram header overlap) -->
     <script>
         (function() {
             try {
                 var savedTheme = localStorage.getItem('GB_THEME') || 'dark';
                 document.documentElement.className = savedTheme;
+                var isTg = (window.Telegram && window.Telegram.WebApp) ||
+                           window.TelegramWebviewProxy !== undefined ||
+                           window.location.hash.indexOf('tgWebAppData') !== -1 ||
+                           window.location.search.indexOf('tgWebAppPlatform') !== -1 ||
+                           /Telegram/i.test(navigator.userAgent);
+                if (isTg) {
+                    document.documentElement.classList.add('telegram-webapp');
+                    document.documentElement.style.setProperty('--tg-top-inset', '56px');
+                }
             } catch(e) {}
         })();
     </script>
@@ -27,6 +36,22 @@
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                document.documentElement.classList.add('telegram-webapp');
+                window.Telegram.WebApp.ready();
+                var topInset = 56;
+                if (window.Telegram.WebApp.safeAreaInset && window.Telegram.WebApp.safeAreaInset.top) {
+                    topInset = Math.max(topInset, window.Telegram.WebApp.safeAreaInset.top);
+                }
+                if (window.Telegram.WebApp.contentSafeAreaInset && window.Telegram.WebApp.contentSafeAreaInset.top) {
+                    topInset = Math.max(topInset, window.Telegram.WebApp.contentSafeAreaInset.top);
+                }
+                document.documentElement.style.setProperty('--tg-top-inset', topInset + 'px');
+            }
+        } catch(e) {}
+    </script>
 
     <!-- Google Fonts: Oswald (Headings), Inter (Body) & Noto Sans Ethiopic (Amharic) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,28 +100,38 @@
             --app-height: 100dvh;
         }
 
-        html, body {
+        html {
             min-height: 100%;
             min-height: -webkit-fill-available;
             min-height: 100dvh;
-            overscroll-behavior-y: none;
+            width: 100%;
+            overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
-            touch-action: manipulation;
         }
 
-        /* Base styles */
         body {
             font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            min-height: 100%;
+            min-height: -webkit-fill-available;
+            min-height: 100dvh;
+            width: 100%;
+            max-width: 100vw;
             overflow-x: hidden;
-            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
             transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         /* Safe area helpers */
         .mobile-header-safe {
-            padding-top: max(0.6rem, env(safe-area-inset-top, 0px));
+            padding-top: max(0.75rem, calc(var(--tg-top-inset, 0px) + var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + env(safe-area-inset-top, 0px)));
+        }
+
+        /* In Telegram WebApp, guarantee full clearance below Telegram's native 'Close' & menu bar */
+        html.telegram-webapp .mobile-header-safe,
+        body.telegram-webapp .mobile-header-safe {
+            padding-top: max(3.75rem, calc(var(--tg-top-inset, 56px) + 0.4rem)) !important;
         }
 
         .mobile-nav-safe {
@@ -133,39 +168,39 @@
 
         /* ============================================================== */
         /* LIGHT MODE HIGH-CONTRAST TYPOGRAPHY & CARD PALETTES            */
-        /* Fixes: All muted text upgraded to deep readable slate & amber  */
+        /* Warm Tuscan Luxury Cream & Polished Royal Gold                  */
         /* ============================================================== */
         html.light body {
-            background-color: #f8fafc;
+            background-color: #faf8f5;
             color: #0f172a;
         }
         html.light .bg-dark-bg {
-            background-color: #f1f5f9 !important;
+            background-color: #f3efe6 !important;
             color: #0f172a !important;
         }
         html.light .bg-dark-card {
             background-color: #ffffff !important;
-            border-color: #e2e8f0 !important;
+            border-color: rgba(212, 175, 55, 0.3) !important;
             color: #0f172a !important;
-            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
+            box-shadow: 0 10px 30px -4px rgba(180, 83, 9, 0.07), 0 2px 6px 0 rgba(0, 0, 0, 0.03) !important;
         }
         html.light .bg-dark-panel {
-            background-color: #f8fafc !important;
-            border-color: #cbd5e1 !important;
+            background-color: #fbf9f6 !important;
+            border-color: #e5ded4 !important;
             color: #0f172a !important;
         }
         html.light .border-dark-border {
-            border-color: #e2e8f0 !important;
+            border-color: #e5ded4 !important;
         }
         html.light header {
             background-color: rgba(255, 255, 255, 0.96) !important;
-            border-color: #e2e8f0 !important;
-            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+            border-color: #e5ded4 !important;
+            box-shadow: 0 4px 20px rgba(180, 83, 9, 0.05);
         }
         html.light nav.fixed {
             background-color: rgba(255, 255, 255, 0.98) !important;
-            border-color: #e2e8f0 !important;
-            box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+            border-color: #e5ded4 !important;
+            box-shadow: 0 -4px 20px rgba(180, 83, 9, 0.06);
         }
         html.light .gold-gradient-text {
             background: linear-gradient(135deg, #b45309 0%, #d97706 60%, #92400e 100%);
@@ -410,186 +445,224 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
-                <!-- LANGUAGE SWITCHER: AMHARIC / ENGLISH TOGGLE -->
-                <button @click="toggleLang()" :title="lang === 'en' ? 'Switch to Amharic (አማርኛ)' : 'Switch to English'" class="p-1.5 sm:p-2 rounded-xl bg-dark-panel border border-dark-border text-gold hover:border-gold/60 transition shadow-sm flex items-center justify-center shrink-0">
-                    <span class="text-xs sm:text-sm leading-none">🌐</span>
+            <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                <!-- LANGUAGE SWITCHER PILL (ENGLISH / AMHARIC) -->
+                <button type="button" 
+                        @click="toggleLang()" 
+                        :title="lang === 'en' ? 'Switch to Amharic (አማርኛ)' : 'Switch to English'" 
+                        class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-dark-panel border border-gold/40 text-gold hover:border-gold hover:bg-gold/15 transition-all shadow-sm flex items-center space-x-1 font-bold text-xs shrink-0 active:scale-95">
+                    <span class="text-xs">🌐</span>
+                    <span class="tracking-wider uppercase text-[11px] font-extrabold" x-text="lang === 'en' ? 'EN' : 'አማ'"></span>
                 </button>
 
-                <!-- THEME SWITCHER: LIGHT / DARK MODE TOGGLE -->
-                <button @click="toggleTheme()" :title="theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'" class="p-1.5 sm:p-2 rounded-xl bg-dark-panel border border-dark-border transition shadow-sm flex items-center justify-center shrink-0">
-                    <!-- Sun icon for switching to light -->
-                    <svg x-show="theme === 'dark'" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <!-- Moon icon for switching to dark -->
-                    <svg x-show="theme === 'light'" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
+                <!-- THEME SWITCHER PILL (VIP DARK / LUXURY DAY) -->
+                <button type="button" 
+                        @click="toggleTheme()" 
+                        :title="theme === 'dark' ? 'Switch to Bright Mode' : 'Switch to Dark VIP Mode'" 
+                        class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-dark-panel border border-gold/40 hover:border-gold hover:bg-gold/15 transition-all shadow-sm flex items-center space-x-1 font-bold text-xs shrink-0 active:scale-95">
+                    <template x-if="theme === 'dark'">
+                        <span class="flex items-center space-x-1 text-gold">
+                            <span class="text-xs">🌙</span>
+                            <span class="text-[10px] font-black uppercase tracking-wider">VIP</span>
+                        </span>
+                    </template>
+                    <template x-if="theme === 'light'">
+                        <span class="flex items-center space-x-1 text-amber-700">
+                            <span class="text-xs">☀️</span>
+                            <span class="text-[10px] font-black uppercase tracking-wider">DAY</span>
+                        </span>
+                    </template>
                 </button>
 
                 <!-- VENUE INFO & DIRECTIONS BUTTON -->
-                <button @click="showVenueModal = true" class="px-2.5 sm:px-3 py-1.5 text-xs rounded-xl bg-dark-panel border border-dark-border text-zinc-200 hover:text-gold hover:border-gold/50 transition flex items-center space-x-1 sm:space-x-1.5 font-medium shrink-0">
-                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="hidden md:inline" x-text="t('map_chamber')">Chamber Bldg · Mexico</span>
-                    <span class="md:hidden" x-text="t('map_btn')">Map</span>
+                <button type="button" @click="showVenueModal = true" class="px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs rounded-xl bg-dark-panel border border-dark-border text-zinc-200 hover:text-gold hover:border-gold/50 transition flex items-center space-x-1 font-medium shrink-0 active:scale-95">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="hidden sm:inline text-[11px]" x-text="t('map_chamber')">Mexico</span>
+                    <span class="sm:hidden text-xs">📍</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- MAIN VIEW CONTAINER -->
-    <main class="w-full max-w-xl mx-auto md:max-w-4xl px-3 sm:px-4 pt-3 sm:pt-4 main-container-safe overflow-x-hidden">
+    <main class="w-full max-w-xl mx-auto md:max-w-4xl px-2.5 sm:px-4 pt-2.5 sm:pt-4 main-container-safe overflow-x-hidden space-y-4 sm:space-y-5">
+
+        <!-- ========================================================== -->
+        <!-- VIP QUICK CONTROLS BAR: GUARANTEED ZERO-OVERLAP VISIBILITY -->
+        <!-- Instant tap for Language (English/አማርኛ) and Theme (VIP/Day) -->
+        <!-- ========================================================== -->
+        <div class="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-dark-card to-amber-500/10 border border-gold/30 shadow-lg backdrop-blur-md flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 min-w-0">
+                <div class="w-7 h-7 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center text-sm shadow-inner shrink-0 text-gold">
+                    ✨
+                </div>
+                <div class="min-w-0">
+                    <span class="font-display font-bold text-xs uppercase tracking-wider text-gold block truncate">
+                        GURA BICHA VIP LOUNGE
+                    </span>
+                    <span class="text-[10px] text-zinc-400 block truncate" x-text="lang === 'en' ? 'Addis Ababa · Mexico Chamber Bldg' : 'አዲስ አበባ · ሜክሲኮ ንግድ ምክር ቤት'">
+                        Addis Ababa · Mexico Chamber Bldg
+                    </span>
+                </div>
+            </div>
+
+            <!-- DUAL QUICK SWITCHERS -->
+            <div class="flex items-center space-x-1.5 shrink-0">
+                <!-- Big Language Pill -->
+                <button type="button" @click="toggleLang()" class="px-2.5 py-1 rounded-xl bg-dark-panel border border-gold/40 hover:border-gold text-gold text-xs font-bold transition flex items-center space-x-1 active:scale-95 shadow-sm">
+                    <span>🌐</span>
+                    <span x-text="lang === 'en' ? 'English' : 'አማርኛ'"></span>
+                </button>
+
+                <!-- Big Bright/Dark Mode Pill -->
+                <button type="button" @click="toggleTheme()" class="px-2.5 py-1 rounded-xl bg-dark-panel border border-dark-border hover:border-gold text-zinc-200 text-xs font-bold transition flex items-center space-x-1 active:scale-95 shadow-sm">
+                    <span x-show="theme === 'dark'" class="flex items-center space-x-1 text-gold">
+                        <span>🌙</span>
+                        <span class="text-[11px] font-semibold">VIP Dark</span>
+                    </span>
+                    <span x-show="theme === 'light'" class="flex items-center space-x-1 text-amber-700">
+                        <span>☀️</span>
+                        <span class="text-[11px] font-semibold">Bright</span>
+                    </span>
+                </button>
+            </div>
+        </div>
 
         <!-- ========================================== -->
         <!-- SCREEN 1: HOME                             -->
         <!-- ========================================== -->
-        <div x-show="screen === 'home'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+        <div x-show="screen === 'home'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4 sm:space-y-5">
             
             <!-- HERO BANNER -->
-            <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/30 bg-dark-card shadow-2xl flex flex-col justify-end min-h-[19rem] sm:min-h-[22rem]">
-                <div class="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/65 to-black/30 z-10"></div>
+            <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/30 bg-dark-card shadow-2xl flex flex-col justify-end min-h-[17rem] sm:min-h-[20rem]">
+                <div class="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/60 to-black/30 z-10"></div>
                 <img src="{{ asset('images/hero-gura.jpg') }}" alt="Gura Bicha Atmosphere" class="absolute inset-0 w-full h-full object-cover object-center filter brightness-75">
                 
-                <div class="relative z-20 p-4 sm:p-7 space-y-2.5 sm:space-y-3">
+                <div class="relative z-20 p-4 sm:p-6 space-y-2 sm:space-y-3">
                     <!-- DUAL VIBE BADGES -->
                     <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                        <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/40 text-gold text-[11px] sm:text-xs font-semibold backdrop-blur-md">
+                        <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/40 text-gold text-[10px] sm:text-xs font-semibold backdrop-blur-md">
                             <span class="w-1.5 h-1.5 rounded-full bg-gold animate-ping"></span>
-                            <span x-text="t('hero_acoustic_badge')">SATURDAY ACOUSTIC GROOVE</span>
+                            <span x-text="t('hero_acoustic_badge')">LIVE ACOUSTIC</span>
                         </div>
-                        <div class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 text-[11px] sm:text-xs font-semibold backdrop-blur-md">
-                            <span x-text="t('hero_football_badge')">⚽ PREMIER LEAGUE 4K ARENA</span>
+                        <div class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 text-[10px] sm:text-xs font-semibold backdrop-blur-md">
+                            <span x-text="t('hero_football_badge')">⚽ 4K MATCHDAYS</span>
                         </div>
                     </div>
 
-                    <h2 class="font-display text-xl sm:text-3xl md:text-4xl font-bold uppercase text-white tracking-wide leading-tight">
-                        <span x-text="t('hero_title_1')">Football Passion & Live Grooves</span> <br class="hidden sm:inline"><span class="gold-gradient-text" x-text="t('hero_title_2')">Mexico, Chamber of Commerce</span>
+                    <h2 class="font-display text-xl sm:text-3xl font-bold uppercase text-white tracking-wide leading-tight">
+                        <span x-text="t('hero_title_1')">Game & Groove</span> <br class="hidden sm:inline"><span class="gold-gradient-text" x-text="t('hero_title_2')">Mexico · Addis Ababa</span>
                     </h2>
 
-                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
-                        <button @click="openReservationWizard()" class="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs sm:text-sm transition shadow-lg shadow-gold/25 flex items-center justify-center space-x-2 transform active:scale-95">
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-1">
+                        <button @click="openReservationWizard()" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs sm:text-sm transition shadow-lg shadow-gold/25 flex items-center justify-center space-x-1.5 transform active:scale-95">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/></svg>
-                            <span x-text="t('hero_reserve_btn')">Reserve Acoustic Table</span>
+                            <span x-text="t('hero_reserve_btn')">Reserve Table</span>
                         </button>
-                        <button @click="setScreen('fixtures')" class="px-3.5 sm:px-4 py-2.5 rounded-xl bg-dark-panel hover:bg-zinc-800 border border-dark-border hover:border-gold/50 text-white font-medium text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 shrink-0">
+                        <button @click="setScreen('fixtures')" class="px-3.5 py-2.5 rounded-xl bg-dark-panel hover:bg-zinc-800 border border-dark-border hover:border-gold/50 text-white font-medium text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 shrink-0">
                             <span x-text="t('hero_fixtures_btn')">⚽ Fixtures</span>
                         </button>
-                        <button @click="setScreen('fanclub')" class="px-3.5 sm:px-4 py-2.5 rounded-xl bg-dark-panel hover:bg-zinc-800 border border-dark-border text-gold font-bold text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 shrink-0">
+                        <button @click="setScreen('fanclub')" class="px-3.5 py-2.5 rounded-xl bg-dark-panel hover:bg-zinc-800 border border-dark-border text-gold font-bold text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 shrink-0">
                             <span x-text="t('hero_fanclub_btn')">🔔 Alerts</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- FAN CLUB CALLOUT PROMO CARD -->
-            <div @click="setScreen('fanclub')" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-dark-card to-dark-card border border-emerald-600/40 flex items-center justify-between cursor-pointer card-hover-lift">
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-11 h-11 rounded-2xl bg-emerald-900/60 border border-emerald-500/50 flex items-center justify-center text-xl shrink-0 shadow-inner">
+            <!-- FAN CLUB CALLOUT PROMO CARD (CLEAN & SIMPLE) -->
+            <div @click="setScreen('fanclub')" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-dark-card to-dark-card border border-emerald-600/40 flex items-center justify-between cursor-pointer card-hover-lift">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-900/60 border border-emerald-500/50 flex items-center justify-center text-lg shrink-0 shadow-inner">
                         ⚽
                     </div>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="px-2 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/30" x-text="t('fan_callout_tag')">FAN CLUB ALERTS</span>
-                            <span class="text-xs text-zinc-300 font-medium" x-text="t('fan_callout_free')">Free Telegram Updates</span>
-                        </div>
-                        <h3 class="font-display text-base font-bold text-white uppercase mt-0.5" x-text="t('fan_callout_title')">Support Arsenal, Chelsea, Man Utd or Real Madrid?</h3>
-                        <p class="text-xs text-zinc-300" x-text="t('fan_callout_desc')">Get notified when your club plays at Gura Bicha & receive live match scores.</p>
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block" x-text="t('fan_callout_tag')">FAN CLUB ALERTS</span>
+                        <h3 class="font-bold text-xs sm:text-sm text-white truncate" x-text="t('fan_callout_title')">Support Arsenal, Chelsea, Man Utd or Real Madrid?</h3>
+                        <p class="text-[11px] text-zinc-300 truncate" x-text="t('fan_callout_desc')">Matchday alerts & live scores on Telegram.</p>
                     </div>
                 </div>
-                <span class="text-emerald-400 font-bold text-xs shrink-0 flex items-center space-x-1">
-                    <span x-text="t('fan_callout_btn')">Join Club</span>
+                <span class="text-emerald-400 font-bold text-xs shrink-0 flex items-center space-x-1 pl-2">
+                    <span x-text="t('fan_callout_btn')">Join</span>
                     <span>→</span>
                 </span>
             </div>
 
-            <!-- SATURDAY ACOUSTIC NIGHT HIGHLIGHT STRIP -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/30 via-dark-card to-dark-card border border-gold/30 flex flex-col sm:flex-row items-center justify-between gap-4 card-hover-lift">
-                <div class="flex items-center space-x-4">
-                    <!-- Soundwave animated bars -->
-                    <div class="flex items-end space-x-1 h-9 px-2.5 py-1 rounded-xl bg-gold/10 border border-gold/30">
-                        <span class="w-1 bg-gold rounded-full soundwave-1"></span>
-                        <span class="w-1 bg-gold rounded-full soundwave-2"></span>
-                        <span class="w-1 bg-gold rounded-full soundwave-3"></span>
-                        <span class="w-1 bg-gold rounded-full soundwave-4"></span>
-                        <span class="w-1 bg-gold rounded-full soundwave-5"></span>
+            <!-- LIVE ACOUSTIC HIGHLIGHT STRIP (CLEAN & SIMPLE) -->
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-950/30 via-dark-card to-dark-card border border-gold/30 flex items-center justify-between gap-3 card-hover-lift">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-lg text-gold shrink-0">
+                        🎸
                     </div>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs font-bold uppercase tracking-wider text-gold" x-text="t('sat_strip_every')">Live Acoustic Nights</span>
-                            <span class="px-2 py-0.2 rounded-full bg-gold/20 text-gold text-[10px] font-bold" x-text="t('sat_strip_hours')">7:00 PM – 11:30 PM</span>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-white uppercase tracking-wide" x-text="t('sat_strip_title')">Game & Groove Acoustic Sessions</h3>
-                        <p class="text-xs text-zinc-300" x-text="t('sat_strip_desc')">Intimate live band performances, candlelight mood, and reserved premium seating.</p>
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-bold text-gold uppercase tracking-wider block" x-text="t('sat_strip_every')">Live Acoustic Sessions</span>
+                        <h3 class="font-bold text-xs sm:text-sm text-white truncate" x-text="t('sat_strip_title')">7:00 PM – 11:30 PM</h3>
                     </div>
                 </div>
-                <div class="flex items-center space-x-2 shrink-0">
-                    <button @click="openReservationWizard()" class="px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs transition shadow-md shadow-gold/20 flex items-center space-x-1.5">
-                        <span x-text="t('sat_strip_btn')">Book Acoustic Table</span>
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </button>
-                </div>
+                <button @click="openReservationWizard()" class="px-3.5 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs transition shadow-md shadow-gold/20 flex items-center space-x-1 shrink-0">
+                    <span x-text="t('sat_strip_btn')">Reserve</span>
+                    <span>→</span>
+                </button>
             </div>
 
             <!-- HIGHLIGHTED LIVE / UPCOMING MATCH CARD WITH CLUB LOGOS -->
             <div class="rounded-2xl border border-dark-border bg-dark-card p-4 sm:p-5 relative overflow-hidden card-hover-lift" x-show="featuredMatch">
-                <div class="flex items-center justify-between border-b border-dark-border/60 pb-3 mb-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-2 h-2 rounded-full" :class="isMatchLive(featuredMatch) ? 'bg-red-500 animate-ping' : 'bg-gold'"></span>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-gold" x-text="isMatchLive(featuredMatch) ? 'LIVE MATCH NOW' : 'FEATURED MATCHDAY'"></span>
+                <div class="flex items-center justify-between border-b border-dark-border/60 pb-3 mb-3">
+                    <div class="flex items-center space-x-2 min-w-0">
+                        <span class="w-2 h-2 rounded-full shrink-0" :class="isMatchLive(featuredMatch) ? 'bg-red-500 animate-ping' : 'bg-gold'"></span>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gold truncate" x-text="isMatchLive(featuredMatch) ? 'LIVE MATCH' : 'FEATURED MATCH'"></span>
                         <span class="text-xs text-zinc-400">·</span>
-                        <span class="text-xs text-zinc-300 font-medium" x-text="featuredMatch ? (featuredMatch.competition + ' · ' + featuredMatch.stage) : ''"></span>
+                        <span class="text-xs text-zinc-300 font-medium truncate" x-text="featuredMatch ? (featuredMatch.competition + ' · ' + featuredMatch.stage) : ''"></span>
                     </div>
-                    <span class="text-xs px-2.5 py-0.5 rounded-lg bg-dark-panel text-zinc-200 border border-dark-border font-medium" x-text="featuredMatch ? formatKickoffTime(featuredMatch.kickoff) : ''"></span>
+                    <span class="text-xs px-2.5 py-0.5 rounded-lg bg-dark-panel text-zinc-200 border border-dark-border font-medium shrink-0 ml-2" x-text="featuredMatch ? formatKickoffTime(featuredMatch.kickoff) : ''"></span>
                 </div>
 
                 <div class="flex items-center justify-between py-2" x-show="featuredMatch">
                     <!-- Home Team with Crest -->
-                    <div class="flex-1 flex flex-col items-center text-center">
-                        <div class="w-16 h-16 rounded-2xl bg-dark-panel border border-gold/30 flex items-center justify-center p-2 mb-2 shadow-inner">
-                            <template x-if="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')">
-                                <img :src="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')" :alt="featuredMatch ? featuredMatch.homeTeam : ''" class="w-full h-full object-contain filter drop-shadow">
-                            </template>
-                            <template x-if="!getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')">
-                                <span class="font-display font-bold text-gold text-lg" x-text="teamInitials(featuredMatch ? featuredMatch.homeTeam : '')"></span>
-                            </template>
+                    <div class="flex-1 min-w-0 flex flex-col items-center text-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-dark-panel border border-gold/30 flex items-center justify-center p-2 mb-2 shadow-inner relative overflow-hidden">
+                            <img x-show="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')" 
+                                 :src="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '')" 
+                                 :alt="featuredMatch ? featuredMatch.homeTeam : ''" 
+                                 class="w-full h-full object-contain filter drop-shadow"
+                                 x-on:error="$el.style.display='none'; if ($el.nextElementSibling) $el.nextElementSibling.style.display='flex'">
+                            <span class="font-display font-bold text-gold text-base sm:text-lg items-center justify-center w-full h-full" 
+                                  :style="getTeamLogo(featuredMatch ? featuredMatch.homeTeam : '') ? 'display: none' : 'display: flex'" 
+                                  x-text="teamInitials(featuredMatch ? featuredMatch.homeTeam : '')"></span>
                         </div>
-                        <span class="text-sm font-bold text-white line-clamp-1" x-text="featuredMatch ? featuredMatch.homeTeam : ''"></span>
+                        <span class="text-xs sm:text-sm font-bold text-white truncate max-w-full" x-text="featuredMatch ? featuredMatch.homeTeam : ''"></span>
                     </div>
 
                     <!-- Versus / Score -->
-                    <div class="px-4 text-center">
+                    <div class="px-2 sm:px-4 text-center shrink-0">
                         <template x-if="featuredMatch && (featuredMatch.homeScore !== null && featuredMatch.awayScore !== null)">
-                            <div class="font-display text-2xl font-bold text-gold px-3.5 py-1 bg-dark-panel rounded-xl border border-dark-border">
+                            <div class="font-display text-xl sm:text-2xl font-bold text-gold px-3 py-1 bg-dark-panel rounded-xl border border-dark-border">
                                 <span x-text="featuredMatch.homeScore"></span> : <span x-text="featuredMatch.awayScore"></span>
                             </div>
                         </template>
                         <template x-if="!featuredMatch || featuredMatch.homeScore === null">
-                            <span class="font-display text-2xl font-bold text-zinc-400 tracking-wider">VS</span>
+                            <span class="font-display text-xl sm:text-2xl font-bold text-zinc-400 tracking-wider">VS</span>
                         </template>
-                        <span class="text-[10px] text-zinc-400 block mt-1">Multi-Screen 4K Audio</span>
                     </div>
 
                     <!-- Away Team with Crest -->
-                    <div class="flex-1 flex flex-col items-center text-center">
-                        <div class="w-16 h-16 rounded-2xl bg-dark-panel border border-gold/30 flex items-center justify-center p-2 mb-2 shadow-inner">
-                            <template x-if="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')">
-                                <img :src="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')" :alt="featuredMatch ? featuredMatch.awayTeam : ''" class="w-full h-full object-contain filter drop-shadow">
-                            </template>
-                            <template x-if="!getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')">
-                                <span class="font-display font-bold text-gold text-lg" x-text="teamInitials(featuredMatch ? featuredMatch.awayTeam : '')"></span>
-                            </template>
+                    <div class="flex-1 min-w-0 flex flex-col items-center text-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-dark-panel border border-gold/30 flex items-center justify-center p-2 mb-2 shadow-inner relative overflow-hidden">
+                            <img x-show="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')" 
+                                 :src="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '')" 
+                                 :alt="featuredMatch ? featuredMatch.awayTeam : ''" 
+                                 class="w-full h-full object-contain filter drop-shadow"
+                                 x-on:error="$el.style.display='none'; if ($el.nextElementSibling) $el.nextElementSibling.style.display='flex'">
+                            <span class="font-display font-bold text-gold text-base sm:text-lg items-center justify-center w-full h-full" 
+                                  :style="getTeamLogo(featuredMatch ? featuredMatch.awayTeam : '') ? 'display: none' : 'display: flex'" 
+                                  x-text="teamInitials(featuredMatch ? featuredMatch.awayTeam : '')"></span>
                         </div>
-                        <span class="text-sm font-bold text-white line-clamp-1" x-text="featuredMatch ? featuredMatch.awayTeam : ''"></span>
+                        <span class="text-xs sm:text-sm font-bold text-white truncate max-w-full" x-text="featuredMatch ? featuredMatch.awayTeam : ''"></span>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-dark-border/60 flex items-center justify-between">
-                    <span class="text-xs text-zinc-300 flex items-center space-x-1.5 font-medium">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span>4K arena screens & stadium sound</span>
-                    </span>
-                    <button @click="setScreen('fixtures')" class="px-3.5 py-1.5 rounded-lg bg-dark-panel hover:bg-gold hover:text-black text-zinc-200 font-semibold text-xs transition border border-dark-border">
+                <div class="mt-3 pt-3 border-t border-dark-border/60 flex items-center justify-between">
+                    <span class="text-xs text-zinc-300 font-medium" x-text="featuredMatch ? formatMatchDate(featuredMatch.kickoff) : ''"></span>
+                    <button @click="setScreen('fixtures')" class="px-3 py-1.5 rounded-lg bg-dark-panel hover:bg-gold hover:text-black text-zinc-200 font-semibold text-xs transition border border-dark-border">
                         View Fixtures
                     </button>
                 </div>
@@ -769,38 +842,41 @@
                 </template>
 
                 <template x-for="match in filteredMatches" :key="match.id">
-                    <div class="p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold/40 transition card-hover-lift space-y-2.5">
+                    <div class="p-3 sm:p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold/40 transition card-hover-lift space-y-2">
                         <!-- Top meta: Competition, Stage, Kickoff / Status -->
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center space-x-1.5">
-                                <span class="px-2 py-0.5 rounded font-bold uppercase text-[10px]"
+                            <div class="flex items-center space-x-1.5 min-w-0">
+                                <span class="px-2 py-0.5 rounded font-bold uppercase text-[10px] shrink-0"
                                       :class="match.competition === 'Premier League' ? 'bg-purple-900/60 text-purple-300 border border-purple-700/50' : 'bg-cyan-900/60 text-cyan-300 border border-cyan-700/50'"
                                       x-text="match.competition"></span>
-                                <span class="text-zinc-400 font-medium" x-text="match.stage"></span>
+                                <span class="text-zinc-400 font-medium truncate text-[11px]" x-text="match.stage"></span>
                                 <template x-if="isMatchLive(match)">
-                                    <span class="px-2 py-0.2 rounded-full bg-red-600 text-white font-black text-[9px] animate-pulse">🔴 LIVE</span>
+                                    <span class="px-2 py-0.2 rounded-full bg-red-600 text-white font-black text-[9px] animate-pulse shrink-0">🔴 LIVE</span>
                                 </template>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-zinc-300 font-semibold" x-text="formatMatchDate(match.kickoff)"></span>
-                                <span class="text-gold font-bold font-mono" x-text="formatKickoffTime(match.kickoff)"></span>
+                            <div class="flex items-center space-x-1.5 shrink-0 ml-2">
+                                <span class="text-zinc-300 font-semibold text-[11px]" x-text="formatMatchDate(match.kickoff)"></span>
+                                <span class="text-gold font-bold font-mono text-xs" x-text="formatKickoffTime(match.kickoff)"></span>
                             </div>
                         </div>
 
                         <!-- Main Teams & Scoreboard -->
                         <div class="flex items-center justify-between py-1">
                             <!-- Home Team with Crest Logo -->
-                            <div class="flex-1 flex items-center space-x-2.5">
-                                <div class="w-10 h-10 rounded-xl bg-dark-panel border border-dark-border flex items-center justify-center p-1.5 shrink-0 shadow-sm">
-                                    <template x-if="getTeamLogo(match.homeTeam)">
-                                        <img :src="getTeamLogo(match.homeTeam)" :alt="match.homeTeam" class="w-full h-full object-contain filter drop-shadow" loading="lazy">
-                                    </template>
-                                    <template x-if="!getTeamLogo(match.homeTeam)">
-                                        <span class="font-display text-xs font-bold text-gold" x-text="teamInitials(match.homeTeam)"></span>
-                                    </template>
+                            <div class="flex-1 min-w-0 flex items-center space-x-2 sm:space-x-2.5">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-dark-panel border border-dark-border flex items-center justify-center p-1 sm:p-1.5 shrink-0 shadow-sm relative overflow-hidden">
+                                    <img x-show="getTeamLogo(match.homeTeam)" 
+                                         :src="getTeamLogo(match.homeTeam)" 
+                                         :alt="match.homeTeam" 
+                                         class="w-full h-full object-contain filter drop-shadow" 
+                                         loading="lazy"
+                                         x-on:error="$el.style.display='none'; if ($el.nextElementSibling) $el.nextElementSibling.style.display='flex'">
+                                    <span class="font-display text-xs font-bold text-gold items-center justify-center w-full h-full" 
+                                          :style="getTeamLogo(match.homeTeam) ? 'display: none' : 'display: flex'" 
+                                          x-text="teamInitials(match.homeTeam)"></span>
                                 </div>
-                                <div>
-                                    <span class="text-xs sm:text-sm font-bold text-white block line-clamp-1" x-text="match.homeTeam"></span>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-xs sm:text-sm font-bold text-white block truncate" x-text="match.homeTeam"></span>
                                     <template x-if="fanForm.favoriteClub && fanForm.favoriteClub === match.homeTeam">
                                         <span class="text-[9px] text-emerald-400 font-semibold flex items-center space-x-0.5"><span>⭐</span><span>Your Club</span></span>
                                     </template>
@@ -808,48 +884,37 @@
                             </div>
 
                             <!-- Score / Status -->
-                            <div class="px-3 text-center shrink-0">
+                            <div class="px-2 sm:px-3 text-center shrink-0">
                                 <template x-if="match.homeScore !== null && match.awayScore !== null">
-                                    <div class="px-3 py-1 rounded-xl bg-dark-panel border border-gold/40 shadow-inner font-display font-extrabold text-sm sm:text-base text-gold">
+                                    <div class="px-2.5 sm:px-3 py-1 rounded-xl bg-dark-panel border border-gold/40 shadow-inner font-display font-extrabold text-xs sm:text-base text-gold">
                                         <span x-text="match.homeScore"></span> - <span x-text="match.awayScore"></span>
                                     </div>
                                 </template>
                                 <template x-if="match.homeScore === null || match.awayScore === null">
-                                    <span class="text-xs text-zinc-400 font-extrabold tracking-wider px-2 py-0.5 rounded bg-dark-panel border border-dark-border">VS</span>
+                                    <span class="text-[11px] sm:text-xs text-zinc-400 font-extrabold tracking-wider px-2 py-0.5 rounded bg-dark-panel border border-dark-border">VS</span>
                                 </template>
                             </div>
 
                             <!-- Away Team with Crest Logo -->
-                            <div class="flex-1 flex items-center justify-end space-x-2.5 text-right">
-                                <div>
-                                    <span class="text-xs sm:text-sm font-bold text-white block line-clamp-1" x-text="match.awayTeam"></span>
+                            <div class="flex-1 min-w-0 flex items-center justify-end space-x-2 sm:space-x-2.5 text-right">
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-xs sm:text-sm font-bold text-white block truncate" x-text="match.awayTeam"></span>
                                     <template x-if="fanForm.favoriteClub && fanForm.favoriteClub === match.awayTeam">
                                         <span class="text-[9px] text-emerald-400 font-semibold flex items-center justify-end space-x-0.5"><span>Your Club</span><span>⭐</span></span>
                                     </template>
                                 </div>
-                                <div class="w-10 h-10 rounded-xl bg-dark-panel border border-dark-border flex items-center justify-center p-1.5 shrink-0 shadow-sm">
-                                    <template x-if="getTeamLogo(match.awayTeam)">
-                                        <img :src="getTeamLogo(match.awayTeam)" :alt="match.awayTeam" class="w-full h-full object-contain filter drop-shadow" loading="lazy">
-                                    </template>
-                                    <template x-if="!getTeamLogo(match.awayTeam)">
-                                        <span class="font-display text-xs font-bold text-gold" x-text="teamInitials(match.awayTeam)"></span>
-                                    </template>
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-dark-panel border border-dark-border flex items-center justify-center p-1 sm:p-1.5 shrink-0 shadow-sm relative overflow-hidden">
+                                    <img x-show="getTeamLogo(match.awayTeam)" 
+                                         :src="getTeamLogo(match.awayTeam)" 
+                                         :alt="match.awayTeam" 
+                                         class="w-full h-full object-contain filter drop-shadow" 
+                                         loading="lazy"
+                                         x-on:error="$el.style.display='none'; if ($el.nextElementSibling) $el.nextElementSibling.style.display='flex'">
+                                    <span class="font-display text-xs font-bold text-gold items-center justify-center w-full h-full" 
+                                          :style="getTeamLogo(match.awayTeam) ? 'display: none' : 'display: flex'" 
+                                          x-text="teamInitials(match.awayTeam)"></span>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Bottom strip: Venue & Saturday Acoustic Notice -->
-                        <div class="pt-2 border-t border-dark-border/50 flex flex-wrap items-center justify-between text-[11px] text-zinc-400 gap-1.5">
-                            <span class="flex items-center space-x-1">
-                                <span>📍</span>
-                                <span x-text="match.venue || 'Gura Bicha 4K Stadium Screens'"></span>
-                            </span>
-                            <template x-if="new Date(match.kickoff).getDay() === 6">
-                                <span class="px-2 py-0.5 rounded-full bg-gold/15 border border-gold/40 text-gold text-[10px] font-bold flex items-center space-x-1">
-                                    <span>🎸</span>
-                                    <span x-text="lang === 'am' ? 'የቅዳሜ አኮስቲክ ምሽት' : 'Pairs with Acoustic Groove Night'">Pairs with Acoustic Night</span>
-                                </span>
-                            </template>
                         </div>
                     </div>
                 </template>
@@ -863,20 +928,20 @@
             
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="font-display text-2xl font-bold uppercase text-white tracking-wide">
-                        Live Acoustic Reservation
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-white tracking-wide">
+                        Table Reservation
                     </h2>
-                    <p class="text-xs text-zinc-300">Reserve your front-row table for live acoustic music sessions (7:00 PM – 11:30 PM)</p>
+                    <p class="text-xs text-zinc-300">Live acoustic sessions · 7:00 PM – 11:30 PM</p>
                 </div>
                 <span class="text-xs px-2.5 py-1 rounded-full bg-dark-panel border border-dark-border text-gold font-semibold" x-text="'Step ' + wizardStep + ' of 4'"></span>
             </div>
 
             <!-- STEP 1: DATE & SESSION -->
             <div x-show="wizardStep === 1" class="space-y-4">
-                <div class="p-5 rounded-2xl bg-dark-card border border-dark-border space-y-4">
+                <div class="p-4 sm:p-5 rounded-2xl bg-dark-card border border-dark-border space-y-4">
                     <label class="block text-sm font-semibold text-white flex items-center justify-between">
-                        <span x-text="t('select_sat_date')">Select Event Date</span>
-                        <span class="text-xs text-gold font-normal">Live Acoustic Sessions</span>
+                        <span x-text="t('select_sat_date')">Select Date</span>
+                        <span class="text-xs text-gold font-normal">Acoustic Sessions</span>
                     </label>
 
                     <!-- DATE INPUT WITH PROMINENT CALENDAR ICON & EXPLICIT CALENDAR PICKER BUTTON (ICON ONLY) -->
@@ -907,13 +972,13 @@
                     </div>
 
                     <!-- Quick Picks for Upcoming Acoustic Dates -->
-                    <div class="pt-2">
-                        <span class="text-xs text-zinc-300 block mb-2 font-medium" x-text="t('quick_pick_saturdays')">Quick-pick upcoming Acoustic Sessions:</span>
+                    <div class="pt-1">
+                        <span class="text-xs text-zinc-300 block mb-2 font-medium" x-text="t('quick_pick_saturdays')">Available Dates:</span>
                         <div class="flex flex-wrap gap-2">
                             <template x-for="item in upcomingSaturdays" :key="item.date">
                                 <button @click="reserveDraft.date = item.date; fetchTablesAvailability()"
                                         :class="reserveDraft.date === item.date ? 'bg-gold text-black font-bold ring-2 ring-gold' : 'bg-dark-panel text-zinc-300 border border-dark-border hover:border-gold/40'"
-                                        class="px-3.5 py-2 rounded-xl text-xs transition flex items-center space-x-1.5 font-medium">
+                                        class="px-3 py-1.5 rounded-xl text-xs transition flex items-center space-x-1.5 font-medium">
                                     <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <span x-text="item.label"></span>
                                     <span x-show="item.tag" class="ml-1 text-[9px] px-1.5 py-0.5 rounded bg-gold/20 text-gold font-bold uppercase" x-text="item.tag"></span>
@@ -923,18 +988,18 @@
                     </div>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-dark-card border border-dark-border space-y-3">
+                <div class="p-4 sm:p-5 rounded-2xl bg-dark-card border border-dark-border space-y-3">
                     <label class="block text-sm font-semibold text-white" x-text="t('session_time')">Session Time</label>
-                    <div class="p-4 rounded-xl border border-gold/40 bg-gold/10 text-left transition flex items-center justify-between">
+                    <div class="p-3.5 rounded-xl border border-gold/40 bg-gold/10 text-left transition flex items-center justify-between">
                         <div>
-                            <span class="block text-sm font-bold text-gold" x-text="t('sat_evening_groove')">Evening Acoustic Groove Session</span>
+                            <span class="block text-sm font-bold text-gold" x-text="t('sat_evening_groove')">Evening Acoustic Session</span>
                             <span class="text-xs text-zinc-300" x-text="t('sat_groove_time')">7:00 PM – 11:30 PM · Live band starts 8:00 PM</span>
                         </div>
                         <span class="text-xs px-2 py-0.5 rounded bg-gold text-black font-bold" x-text="t('selected_badge')">SELECTED</span>
                     </div>
                 </div>
 
-                <button @click="goToStep(2)" :disabled="!reserveDraft.date" class="w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-sm transition shadow-lg shadow-gold/20" x-text="t('continue_tables')">
+                <button @click="goToStep(2)" :disabled="!reserveDraft.date" class="w-full py-3 rounded-xl bg-gold hover:bg-gold-light disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-sm transition shadow-lg shadow-gold/20" x-text="t('continue_tables')">
                     Continue to Table Selection
                 </button>
             </div>
@@ -1347,28 +1412,28 @@
                         ⚽
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">GURA BICHA FAN CLUB</span>
-                        <h2 class="font-display text-2xl font-bold uppercase text-white tracking-wide">
-                            Matchday & Score Alerts
+                        <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">FAN CLUB</span>
+                        <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-white tracking-wide">
+                            Matchday Alerts
                         </h2>
                     </div>
                 </div>
-                <p class="text-xs text-zinc-300 leading-relaxed">
-                    Tell us which club you support! We'll alert you whenever your team has a big match screening at Gura Bicha, and send you live score updates and Saturday acoustic night specials.
+                <p class="text-xs text-zinc-300">
+                    Get live matchday alerts and score updates directly on Telegram.
                 </p>
             </div>
 
             <!-- SUCCESS CONFIRMATION BADGE -->
-            <div x-show="fanSaved" class="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500 text-emerald-200 text-xs flex items-center space-x-3 shadow-lg">
-                <svg class="w-6 h-6 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <div x-show="fanSaved" class="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500 text-emerald-200 text-xs flex items-center space-x-3 shadow-lg">
+                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 <div>
                     <span class="font-bold text-white block">You're on the Matchday Alert List!</span>
-                    <span>We will notify you when <strong class="text-gold" x-text="fanForm.favoriteClub"></strong> kicks off and send you live scores.</span>
+                    <span class="text-[11px]">We will notify you when <strong class="text-gold" x-text="fanForm.favoriteClub"></strong> kicks off.</span>
                 </div>
             </div>
 
             <!-- FAN PROFILE REGISTRATION FORM -->
-            <div class="p-5 rounded-2xl bg-dark-card border border-dark-border space-y-4 shadow-xl">
+            <div class="p-4 sm:p-5 rounded-2xl bg-dark-card border border-dark-border space-y-4 shadow-xl">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-bold text-white uppercase tracking-wider">Your Fan Profile</h3>
                     <template x-if="isTelegramUser">
@@ -1380,29 +1445,25 @@
                 </div>
 
                 <template x-if="isTelegramUser">
-                    <div class="p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 text-sky-200 text-xs flex items-center space-x-2.5">
-                        <span class="text-base">✈️</span>
-                        <div class="leading-relaxed">
-                            <span class="font-bold text-white">Telegram Mini App Sync Active:</span> Match screening alerts and live football scores will be delivered directly to your Telegram chat.
+                    <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-sky-200 text-xs flex items-center space-x-2">
+                        <span class="text-sm">✈️</span>
+                        <div class="text-[11px] leading-relaxed">
+                            <span class="font-bold text-white">Telegram Connected:</span> Alerts & scores delivered directly to your chat.
                         </div>
                     </div>
                 </template>
 
                 <!-- CLUB SELECTION CAROUSEL -->
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-300 mb-2">Select Your Supported Football Club *</label>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <label class="block text-xs font-semibold text-zinc-300 mb-2">Select Your Football Club *</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <template x-for="club in popularClubs" :key="club.name">
                             <button type="button" @click="fanForm.favoriteClub = club.name" 
                                     :class="fanForm.favoriteClub === club.name ? 'border-gold bg-gold/15 text-gold ring-2 ring-gold' : 'border-dark-border bg-dark-panel text-zinc-300 hover:border-gold/50'"
-                                    class="p-2.5 rounded-xl border text-center transition flex flex-col items-center space-y-1.5">
-                                <div class="w-8 h-8 flex items-center justify-center">
-                                    <template x-if="club.logo">
-                                        <img :src="club.logo" :alt="club.name" class="w-full h-full object-contain filter drop-shadow">
-                                    </template>
-                                    <template x-if="!club.logo">
-                                        <span class="text-sm">⚽</span>
-                                    </template>
+                                    class="p-2 sm:p-2.5 rounded-xl border text-center transition flex flex-col items-center space-y-1">
+                                <div class="w-8 h-8 flex items-center justify-center relative overflow-hidden">
+                                    <img x-show="club.logo" :src="club.logo" :alt="club.name" class="w-full h-full object-contain filter drop-shadow" x-on:error="$el.style.display='none'; if ($el.nextElementSibling) $el.nextElementSibling.style.display='flex'">
+                                    <span class="text-sm items-center justify-center w-full h-full" :style="club.logo ? 'display: none' : 'display: flex'">⚽</span>
                                 </div>
                                 <span class="text-xs font-bold truncate max-w-full" x-text="club.name"></span>
                             </button>
@@ -1410,7 +1471,7 @@
                     </div>
 
                     <!-- Custom Club Write-in -->
-                    <div class="mt-3">
+                    <div class="mt-2.5">
                         <label class="block text-[11px] text-zinc-400 mb-1">Or write in another club / team:</label>
                         <input type="text" x-model="fanForm.favoriteClub" placeholder="e.g. Saint George SC, Bayern, Juventus..." class="w-full bg-dark-panel border border-dark-border rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-gold">
                     </div>
@@ -1802,82 +1863,124 @@
 
     <!-- CLUB LOGOS DICTIONARY & APP JAVASCRIPT LOGIC -->
     <script>
+        const FDATA_CDN = 'https://crests.football-data.org/';
+        const APISPORTS_CDN = 'https://media.api-sports.io/football/teams/';
+
         const CLUB_LOGOS = {
-            // Premier League (Full & Short Names)
-            'Arsenal': 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg',
-            'Aston Villa': 'https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_logo.svg',
-            'Bournemouth': 'https://upload.wikimedia.org/wikipedia/en/e/e5/AFC_Bournemouth_%282013%29.svg',
-            'Brentford': 'https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg',
-            'Brighton': 'https://upload.wikimedia.org/wikipedia/en/f/fd/Brighton_%26_Hove_Albion_logo.svg',
-            'Chelsea': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
-            'Crystal Palace': 'https://upload.wikimedia.org/wikipedia/en/a/a2/Crystal_Palace_FC_logo_%282022%29.svg',
-            'Everton': 'https://upload.wikimedia.org/wikipedia/en/7/7c/Everton_FC_logo.svg',
-            'Fulham': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Fulham_FC_%28shield%29.svg',
-            'Ipswich Town': 'https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town.svg',
-            'Leicester City': 'https://upload.wikimedia.org/wikipedia/en/2/2d/Leicester_City_crest.svg',
-            'Liverpool': 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg',
-            'Manchester City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
-            'Man City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
-            'Manchester United': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
-            'Man United': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
-            'Newcastle United': 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
-            'Newcastle': 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
-            'Nottingham Forest': 'https://upload.wikimedia.org/wikipedia/en/e/e5/Nottingham_Forest_F.C._logo.svg',
-            'Southampton': 'https://upload.wikimedia.org/wikipedia/en/c/c9/FC_Southampton.svg',
-            'Tottenham Hotspur': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
-            'Tottenham': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
-            'West Ham United': 'https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg',
-            'West Ham': 'https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg',
-            'Wolverhampton Wanderers': 'https://upload.wikimedia.org/wikipedia/en/f/fc/Wolverhampton_Wanderers.svg',
-            'Wolves': 'https://upload.wikimedia.org/wikipedia/en/f/fc/Wolverhampton_Wanderers.svg',
+            // Premier League (Full, Short & Nicknames)
+            'Arsenal': FDATA_CDN + '57.png',
+            'Aston Villa': FDATA_CDN + '58.png',
+            'Bournemouth': FDATA_CDN + '1044.png',
+            'Brentford': FDATA_CDN + '402.png',
+            'Brighton': FDATA_CDN + '397.png',
+            'Brighton & Hove Albion': FDATA_CDN + '397.png',
+            'Chelsea': FDATA_CDN + '61.png',
+            'Crystal Palace': FDATA_CDN + '354.png',
+            'Everton': FDATA_CDN + '62.png',
+            'Fulham': FDATA_CDN + '63.png',
+            'Ipswich Town': FDATA_CDN + '349.png',
+            'Ipswich': FDATA_CDN + '349.png',
+            'Leicester City': FDATA_CDN + '338.png',
+            'Leicester': FDATA_CDN + '338.png',
+            'Liverpool': FDATA_CDN + '64.png',
+            'Manchester City': FDATA_CDN + '65.png',
+            'Man City': FDATA_CDN + '65.png',
+            'Manchester United': FDATA_CDN + '66.png',
+            'Man United': FDATA_CDN + '66.png',
+            'Man Utd': FDATA_CDN + '66.png',
+            'Newcastle United': FDATA_CDN + '67.png',
+            'Newcastle': FDATA_CDN + '67.png',
+            'Nottingham Forest': FDATA_CDN + '351.png',
+            'Southampton': FDATA_CDN + '340.png',
+            'Tottenham Hotspur': FDATA_CDN + '73.png',
+            'Tottenham': FDATA_CDN + '73.png',
+            'Spurs': FDATA_CDN + '73.png',
+            'West Ham United': FDATA_CDN + '563.png',
+            'West Ham': FDATA_CDN + '563.png',
+            'Wolverhampton Wanderers': FDATA_CDN + '76.png',
+            'Wolves': FDATA_CDN + '76.png',
+            'Burnley': FDATA_CDN + '328.png',
+            'Leeds United': FDATA_CDN + '341.png',
+            'Leeds': FDATA_CDN + '341.png',
+            'Coventry City': FDATA_CDN + '1076.png',
+            'Hull City': FDATA_CDN + '322.png',
+            'Sunderland': FDATA_CDN + '71.png',
 
             // La Liga
-            'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
-            'Barcelona': 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
-            'Atletico Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
-            'Athletic Club': 'https://upload.wikimedia.org/wikipedia/en/9/98/Club_Athletic_Bilbao_logo.svg',
-            'Real Betis': 'https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg',
-            'Villarreal': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
+            'Real Madrid': FDATA_CDN + '86.png',
+            'Barcelona': FDATA_CDN + '81.png',
+            'Barca': FDATA_CDN + '81.png',
+            'Atletico Madrid': FDATA_CDN + '78.png',
+            'Athletic Club': FDATA_CDN + '77.png',
+            'Athletic Bilbao': FDATA_CDN + '77.png',
+            'Real Betis': FDATA_CDN + '90.png',
+            'Villarreal': FDATA_CDN + '94.png',
 
             // Bundesliga
-            'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
-            'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
-            'Bayer Leverkusen': 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg',
-            'RB Leipzig': 'https://upload.wikimedia.org/wikipedia/en/0/04/RB_Leipzig_2020_logo.svg',
-            'Eintracht Frankfurt': 'https://upload.wikimedia.org/wikipedia/commons/0/04/Eintracht_Frankfurt_Logo.svg',
-            'VfB Stuttgart': 'https://upload.wikimedia.org/wikipedia/commons/e/eb/VfB_Stuttgart_1893_Logo.svg',
+            'Bayern Munich': FDATA_CDN + '5.png',
+            'Bayern': FDATA_CDN + '5.png',
+            'Borussia Dortmund': FDATA_CDN + '4.png',
+            'Dortmund': FDATA_CDN + '4.png',
+            'Bayer Leverkusen': FDATA_CDN + '3.png',
+            'Leverkusen': FDATA_CDN + '3.png',
+            'RB Leipzig': FDATA_CDN + '721.png',
+            'Leipzig': FDATA_CDN + '721.png',
+            'Eintracht Frankfurt': FDATA_CDN + '19.png',
+            'Frankfurt': FDATA_CDN + '19.png',
+            'VfB Stuttgart': FDATA_CDN + '10.png',
+            'Stuttgart': FDATA_CDN + '10.png',
 
             // Serie A
-            'Inter': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
-            'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
-            'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Juventus_FC_2017_logo.svg',
-            'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
-            'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg',
-            'Napoli': 'https://upload.wikimedia.org/wikipedia/commons/0/00/SSC_Napoli_2024_%28deep_blue_silhouette%29.svg',
-            'Roma': 'https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg',
-            'Como': 'https://upload.wikimedia.org/wikipedia/en/1/17/Como_1907_logo.svg',
+            'Inter': FDATA_CDN + '108.png',
+            'Inter Milan': FDATA_CDN + '108.png',
+            'Internazionale': FDATA_CDN + '108.png',
+            'Juventus': FDATA_CDN + '109.png',
+            'AC Milan': FDATA_CDN + '98.png',
+            'Milan': FDATA_CDN + '98.png',
+            'Atalanta': FDATA_CDN + '102.png',
+            'Napoli': FDATA_CDN + '113.png',
+            'Roma': FDATA_CDN + '100.png',
+            'AS Roma': FDATA_CDN + '100.png',
+            'Como': FDATA_CDN + '1063.png',
 
             // Ligue 1
-            'PSG': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
-            'Paris Saint-Germain': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
-            'Marseille': 'https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg',
-            'Monaco': 'https://upload.wikimedia.org/wikipedia/en/b/ba/AS_Monaco_FC.svg',
-            'Lille': 'https://upload.wikimedia.org/wikipedia/en/6/6f/LOSC_Lille_logo.svg',
-            'Lens': 'https://upload.wikimedia.org/wikipedia/en/c/cc/RC_Lens_logo.svg',
+            'PSG': FDATA_CDN + '524.png',
+            'Paris Saint-Germain': FDATA_CDN + '524.png',
+            'Marseille': FDATA_CDN + '516.png',
+            'Monaco': FDATA_CDN + '548.png',
+            'Lille': FDATA_CDN + '521.png',
+            'Lens': FDATA_CDN + '546.png',
 
-            // European Champions League & Other Contenders
-            'Ajax Amsterdam': 'https://upload.wikimedia.org/wikipedia/en/7/79/Ajax_Amsterdam.svg',
-            'Feyenoord Rotterdam': 'https://upload.wikimedia.org/wikipedia/en/e/e3/Feyenoord_logo.svg',
-            'PSV': 'https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg',
-            'Benfica': 'https://upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg',
-            'Porto': 'https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg',
-            'Sporting CP': 'https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_%28Logo%29.svg',
-            'Galatasaray': 'https://upload.wikimedia.org/wikipedia/commons/3/37/Galatasaray_Star_Logo.svg',
-            'Fenerbahce': 'https://upload.wikimedia.org/wikipedia/en/3/39/Fenerbah%C3%A7e_SK.svg',
-            'Celtic': 'https://upload.wikimedia.org/wikipedia/en/3/35/Celtic_FC.svg',
-            'Club Brugge': 'https://upload.wikimedia.org/wikipedia/en/d/d0/Club_Brugge_KV_logo.svg',
-            'Shakhtar Donetsk': 'https://upload.wikimedia.org/wikipedia/en/a/a1/FC_Shakhtar_Donetsk.svg',
-            'Bodø/Glimt': 'https://upload.wikimedia.org/wikipedia/en/7/7b/FK_Bod%C3%B8-Glimt_logo.svg',
+            // European Champions League & Continental Contenders
+            'Ajax Amsterdam': FDATA_CDN + '678.png',
+            'Ajax': FDATA_CDN + '678.png',
+            'Feyenoord Rotterdam': FDATA_CDN + '675.png',
+            'Feyenoord': FDATA_CDN + '675.png',
+            'PSV': FDATA_CDN + '674.png',
+            'PSV Eindhoven': FDATA_CDN + '674.png',
+            'Benfica': FDATA_CDN + '1903.png',
+            'Porto': FDATA_CDN + '503.png',
+            'Sporting CP': FDATA_CDN + '498.png',
+            'Sporting': FDATA_CDN + '498.png',
+            'Galatasaray': FDATA_CDN + '613.png',
+            'Fenerbahce': FDATA_CDN + '614.png',
+            'Celtic': FDATA_CDN + '732.png',
+            'Club Brugge': FDATA_CDN + '851.png',
+            'Shakhtar Donetsk': FDATA_CDN + '683.png',
+            'Bodø/Glimt': FDATA_CDN + '1879.png',
+            'Slavia Prague': FDATA_CDN + '1908.png',
+            'Slovan Bratislava': FDATA_CDN + '1906.png',
+            'Olympiacos': FDATA_CDN + '654.png',
+            'Copenhagen': FDATA_CDN + '1876.png',
+            'FC Copenhagen': FDATA_CDN + '1876.png',
+            'Union St.-Gilloise': FDATA_CDN + '1901.png',
+            'LASK': FDATA_CDN + '2016.png',
+            'AEK Athens': FDATA_CDN + '1878.png',
+            'FK Qarabag': APISPORTS_CDN + '558.png',
+            'Kairat Almaty': APISPORTS_CDN + '2275.png',
+            'Sabah FK': APISPORTS_CDN + '6463.png',
+            'Pafos': APISPORTS_CDN + '3389.png',
+            'Viking': APISPORTS_CDN + '328.png'
         };
 
         function guraBichaApp() {
@@ -2088,6 +2191,10 @@
                 toggleLang() {
                     this.lang = this.lang === 'en' ? 'am' : 'en';
                     localStorage.setItem('GB_LANG', this.lang);
+                    if (this.tgWebApp && this.tgWebApp.HapticFeedback) {
+                        this.tgWebApp.HapticFeedback.impactOccurred('medium');
+                    }
+                    this.syncTelegramButtons();
                 },
 
                 t(key) {
@@ -2188,10 +2295,13 @@
                     const isDark = this.theme === 'dark';
                     try {
                         if (this.tgWebApp.setHeaderColor) {
-                            this.tgWebApp.setHeaderColor(isDark ? '#0b0f19' : '#ffffff');
+                            this.tgWebApp.setHeaderColor(isDark ? '#060709' : '#ffffff');
                         }
                         if (this.tgWebApp.setBackgroundColor) {
-                            this.tgWebApp.setBackgroundColor(isDark ? '#0b0f19' : '#f8fafc');
+                            this.tgWebApp.setBackgroundColor(isDark ? '#060709' : '#faf8f5');
+                        }
+                        if (this.tgWebApp.setBottomBarColor) {
+                            this.tgWebApp.setBottomBarColor(isDark ? '#060709' : '#ffffff');
                         }
                     } catch (e) {}
                 },
@@ -2230,6 +2340,9 @@
                     document.documentElement.classList.remove('dark', 'light');
                     document.documentElement.classList.add(this.theme);
                     this.updateTelegramColors();
+                    if (this.tgWebApp && this.tgWebApp.HapticFeedback) {
+                        this.tgWebApp.HapticFeedback.impactOccurred('medium');
+                    }
                 },
 
                 async initApp() {
@@ -2244,6 +2357,7 @@
                     // Check Telegram WebApp
                     if (window.Telegram && window.Telegram.WebApp) {
                         this.tgWebApp = window.Telegram.WebApp;
+                        document.documentElement.classList.add('telegram-webapp');
                         try {
                             this.tgWebApp.ready();
                             this.tgWebApp.expand();
@@ -2263,16 +2377,33 @@
                                 try { this.tgWebApp.requestFullscreen(); } catch (e) {}
                             }
 
-                            this.updateTelegramColors();
+                            // Dynamically calculate and apply safe area clearance below Telegram's native 'Close' & menu bar
+                            const updateTgInsets = () => {
+                                let topInset = 54;
+                                if (this.tgWebApp.isFullscreen) {
+                                    document.documentElement.classList.add('telegram-fullscreen');
+                                }
+                                if (this.tgWebApp.safeAreaInset && this.tgWebApp.safeAreaInset.top) {
+                                    topInset = Math.max(topInset, this.tgWebApp.safeAreaInset.top);
+                                }
+                                if (this.tgWebApp.contentSafeAreaInset && this.tgWebApp.contentSafeAreaInset.top) {
+                                    topInset = Math.max(topInset, this.tgWebApp.contentSafeAreaInset.top);
+                                }
+                                document.documentElement.style.setProperty('--tg-top-inset', `${topInset}px`);
+                                if (this.tgWebApp.viewportHeight) {
+                                    document.documentElement.style.setProperty('--app-height', `${this.tgWebApp.viewportHeight}px`);
+                                }
+                            };
+                            updateTgInsets();
 
-                            // Handle dynamic viewport height changes (e.g. virtual keyboard open/close)
                             if (typeof this.tgWebApp.onEvent === 'function') {
-                                this.tgWebApp.onEvent('viewportChanged', () => {
-                                    if (this.tgWebApp.viewportHeight) {
-                                        document.documentElement.style.setProperty('--app-height', `${this.tgWebApp.viewportHeight}px`);
-                                    }
-                                });
+                                this.tgWebApp.onEvent('safeAreaChanged', updateTgInsets);
+                                this.tgWebApp.onEvent('contentSafeAreaChanged', updateTgInsets);
+                                this.tgWebApp.onEvent('fullscreenChanged', updateTgInsets);
+                                this.tgWebApp.onEvent('viewportChanged', updateTgInsets);
                             }
+
+                            this.updateTelegramColors();
                         } catch (e) {}
 
                         if (this.tgWebApp.initDataUnsafe && this.tgWebApp.initDataUnsafe.user) {
@@ -2418,7 +2549,81 @@
                     if (!name) return null;
                     if (CLUB_LOGOS[name]) return CLUB_LOGOS[name];
                     const clean = name.trim().toLowerCase();
-                    const key = Object.keys(CLUB_LOGOS).find(k => k.toLowerCase() === clean);
+                    
+                    // Direct case-insensitive match
+                    let key = Object.keys(CLUB_LOGOS).find(k => k.toLowerCase() === clean);
+                    if (key) return CLUB_LOGOS[key];
+
+                    // Alias map for common variations & abbreviations
+                    const aliases = {
+                        'paris': 'PSG',
+                        'paris sg': 'PSG',
+                        'paris saint germain': 'PSG',
+                        'paris saint-germain': 'PSG',
+                        'manchester united': 'Manchester United',
+                        'manchester utd': 'Manchester United',
+                        'man united': 'Manchester United',
+                        'man utd': 'Manchester United',
+                        'man city': 'Manchester City',
+                        'manchester city': 'Manchester City',
+                        'tottenham': 'Tottenham Hotspur',
+                        'spurs': 'Tottenham Hotspur',
+                        'wolves': 'Wolves',
+                        'wolverhampton': 'Wolves',
+                        'wolverhampton wanderers': 'Wolves',
+                        'brighton': 'Brighton',
+                        'brighton and hove albion': 'Brighton',
+                        'brighton & hove albion': 'Brighton',
+                        'newcastle': 'Newcastle United',
+                        'west ham': 'West Ham United',
+                        'nottingham': 'Nottingham Forest',
+                        'leicester': 'Leicester City',
+                        'ipswich': 'Ipswich Town',
+                        'atletico': 'Atletico Madrid',
+                        'atlético': 'Atletico Madrid',
+                        'atlético madrid': 'Atletico Madrid',
+                        'athletic bilbao': 'Athletic Club',
+                        'inter milan': 'Inter',
+                        'internazionale': 'Inter',
+                        'ac milan': 'AC Milan',
+                        'milan': 'AC Milan',
+                        'bayern': 'Bayern Munich',
+                        'bayern münchen': 'Bayern Munich',
+                        'bayern munchen': 'Bayern Munich',
+                        'leverkusen': 'Bayer Leverkusen',
+                        'dortmund': 'Borussia Dortmund',
+                        'leipzig': 'RB Leipzig',
+                        'sporting lisbon': 'Sporting CP',
+                        'sporting': 'Sporting CP',
+                        'shakhtar': 'Shakhtar Donetsk',
+                        'qarabag': 'FK Qarabag',
+                        'bodo/glimt': 'Bodø/Glimt',
+                        'bodo glimt': 'Bodø/Glimt',
+                        'slavia praha': 'Slavia Prague',
+                        'feyenoord': 'Feyenoord Rotterdam',
+                        'ajax': 'Ajax Amsterdam'
+                    };
+                    if (aliases[clean] && CLUB_LOGOS[aliases[clean]]) {
+                        return CLUB_LOGOS[aliases[clean]];
+                    }
+
+                    // Strip common team prefixes & suffixes
+                    const stripped = clean.replace(/^(fc|afc|cf|sc|sv|as|rb|vfb)\s+/, '')
+                                          .replace(/\s+(fc|afc|cf|sc|sv|united|city|town|wanderers)$/, '')
+                                          .trim();
+                    if (stripped && stripped !== clean) {
+                        key = Object.keys(CLUB_LOGOS).find(k => k.toLowerCase() === stripped);
+                        if (key) return CLUB_LOGOS[key];
+                        if (aliases[stripped] && CLUB_LOGOS[aliases[stripped]]) {
+                            return CLUB_LOGOS[aliases[stripped]];
+                        }
+                    }
+
+                    // Substring match for safe names with length >= 4
+                    key = Object.keys(CLUB_LOGOS).find(k => {
+                        const kl = k.toLowerCase();
+                        return (clean.length >= 4 && kl.includes(clean)) || (kl.length >= 4 && clean.includes(kl));
+                    });
                     return key ? CLUB_LOGOS[key] : null;
                 },
 
