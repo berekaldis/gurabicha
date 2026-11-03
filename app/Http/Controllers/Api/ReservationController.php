@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\SportMatch;
 use App\Models\VenueTable;
+use App\Services\ReservationNotificationService;
 use App\Services\TelegramAuthService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +15,8 @@ use Illuminate\Http\Request;
 class ReservationController extends Controller
 {
     public function __construct(
-        protected TelegramAuthService $telegramAuth
+        protected TelegramAuthService $telegramAuth,
+        protected ReservationNotificationService $notificationService
     ) {}
 
     /**
@@ -141,8 +143,8 @@ class ReservationController extends Controller
                 ], 400);
             }
 
-            /* ---- not in the past (compare UTC calendar dates) ---- */
-            $todayStr = Carbon::now('UTC')->format('Y-m-d');
+            /* ---- not in the past (compare Addis Ababa calendar dates) ---- */
+            $todayStr = Carbon::now('Africa/Addis_Ababa')->format('Y-m-d');
             if ($dateStr < $todayStr) {
                 return response()->json([
                     'error' => 'Cannot book a date in the past.',
@@ -150,7 +152,7 @@ class ReservationController extends Controller
             }
 
             /* ---- slot ---- */
-            $slot = is_string($data['slot'] ?? null) ? $data['slot'] : '';
+            $slot = is_string($data['slot'] ?? null) ? strtoupper(trim($data['slot'])) : 'EVENING';
             if ($slot !== 'LUNCH' && $slot !== 'EVENING') {
                 return response()->json([
                     'error' => 'Invalid slot. Must be LUNCH or EVENING.',
@@ -171,10 +173,10 @@ class ReservationController extends Controller
             }
 
             /* ---- guests ---- */
-            $guests = $data['guests'] ?? null;
-            if (!is_int($guests) || $guests < 1 || $guests > 12) {
+            $guests = isset($data['guests']) ? (int) $data['guests'] : 4;
+            if ($guests < 1 || $guests > 12) {
                 return response()->json([
-                    'error' => 'guests must be an integer between 1 and 12.',
+                    'error' => 'Guests must be an integer between 1 and 12.',
                 ], 400);
             }
             if ($guests > $table->capacity) {
@@ -197,41 +199,37 @@ class ReservationController extends Controller
                 ], 400);
             }
             $phone = $this->normalizePhone($phoneRaw);
+            if (strlen($phone) < 7) {
+                return response()->json([
+                    'error' => 'Valid phone number is required (at least 7 digits).',
+                ], 400);
+            }
 
             /* ---- match (optional) ---- */
             $matchId = null;
             $matchLabel = null;
             if (isset($data['matchId']) && is_string($data['matchId']) && trim($data['matchId']) !== '') {
                 $match = SportMatch::find(trim($data['matchId']));
-                if (!$match) {
-                    return response()->json(['error' => 'Unknown match selected.'], 400);
+                if ($match) {
+                    $matchId = $match->id;
+                    $matchLabel = "{$match->homeTeam} vs {$match->awayTeam} · {$match->competition} — {$match->stage}";
                 }
-
-                $kickoffDay = Carbon::parse($match->kickoff)->setTimezone('UTC')->format('Y-m-d');
-                if ($kickoffDay !== $dateStr) {
-                    return response()->json([
-                        'error' => 'Selected match does not kick off on the chosen date.',
-                    ], 400);
-                }
-
-                $matchId = $match->id;
-                $matchLabel = "{$match->homeTeam} vs {$match->awayTeam} · {$match->competition} — {$match->stage}";
             }
 
             /* ---- availability (409) ---- */
             $conflict = Reservation::whereDate('date', $date->toDateString())
                 ->where('slot', $slot)
                 ->where('tableCode', $tableCode)
-                ->where('status', 'CONFIRMED')
+                ->whereIn('status', ['CONFIRMED', 'PENDING'])
                 ->exists();
 
             if ($conflict) {
                 return response()->json([
-                    'error' => "Table {$tableCode} is no longer available for that slot. Please pick another.",
+                    'error' => "Table {$tableCode} is already booked or pending confirmation for that session. Please pick another table.",
                 ], 409);
             }
 
-            /* ---- create ---- */
+            /* ---- create (PENDING by default until Admin confirms) ---- */
             $code = $this->generateUniqueCode();
             $email = isset($data['email']) && is_string($data['email']) && trim($data['email']) !== ''
                 ? trim($data['email'])
@@ -254,18 +252,25 @@ class ReservationController extends Controller
                 'matchLabel' => $matchLabel,
                 'telegramUserId' => $telegramUserId,
                 'telegramUsername' => $telegramUsername,
-                'status' => 'CONFIRMED',
+                'status' => 'PENDING',
             ]);
 
-            return response()->json(['reservation' => $reservation], 201);
+            // Notify Admin via Telegram immediately
+            $this->notificationService->notifyAdminNewReservation($reservation);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reservation request received and pending admin confirmation.',
+                'reservation' => $reservation
+            ], 201);
         } catch (\Throwable $e) {
             report($e);
-            return response()->json(['error' => 'Internal server error'], 500);
+            return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
         }
     }
 
     /**
-     * DELETE /api/reservations/{id} — soft cancel: sets status to CANCELLED.
+     * DELETE /api/reservations/{id} — customer cancel: sets status to CANCELLED.
      */
     public function destroy(string $id): JsonResponse
     {
@@ -278,7 +283,10 @@ class ReservationController extends Controller
             $reservation->status = 'CANCELLED';
             $reservation->save();
 
-            return response()->json(['reservation' => $reservation]);
+            // Notify Admin via Telegram
+            $this->notificationService->notifyAdminCancelledReservation($reservation);
+
+            return response()->json(['success' => true, 'reservation' => $reservation]);
         } catch (\Throwable $e) {
             report($e);
             return response()->json(['error' => 'Internal server error'], 500);

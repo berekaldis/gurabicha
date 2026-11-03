@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\SportMatch;
 use App\Models\VenueTable;
+use App\Services\ReservationNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,9 @@ use Illuminate\View\View;
 
 class ReservationController extends Controller
 {
+    public function __construct(
+        protected ReservationNotificationService $notificationService
+    ) {}
     /**
      * Display a listing of reservations with filters and search.
      */
@@ -113,7 +117,7 @@ class ReservationController extends Controller
             'email' => ['nullable', 'email'],
             'request' => ['nullable', 'string', 'max:500'],
             'matchId' => ['nullable', 'exists:matches,id'],
-            'status' => ['required', 'in:CONFIRMED,CANCELLED'],
+            'status' => ['required', 'in:CONFIRMED,PENDING,CANCELLED'],
         ]);
 
         $table = VenueTable::where('code', $validated['tableCode'])->first();
@@ -184,7 +188,7 @@ class ReservationController extends Controller
             'email' => ['nullable', 'email'],
             'request' => ['nullable', 'string', 'max:500'],
             'matchId' => ['nullable', 'exists:matches,id'],
-            'status' => ['required', 'in:CONFIRMED,CANCELLED'],
+            'status' => ['required', 'in:CONFIRMED,PENDING,CANCELLED'],
         ]);
 
         $table = VenueTable::where('code', $validated['tableCode'])->first();
@@ -237,15 +241,18 @@ class ReservationController extends Controller
     }
 
     /**
-     * Quick status update.
+     * Quick status update (Confirm, Pending, or Cancel).
      */
     public function updateStatus(Request $request, Reservation $reservation): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:CONFIRMED,CANCELLED'],
+            'status' => ['required', 'in:CONFIRMED,PENDING,CANCELLED'],
         ]);
 
-        if ($validated['status'] === 'CONFIRMED') {
+        $newStatus = $validated['status'];
+        $oldStatus = $reservation->status;
+
+        if ($newStatus === 'CONFIRMED') {
             $conflict = Reservation::whereDate('date', $reservation->date)
                 ->where('slot', $reservation->slot)
                 ->where('tableCode', $reservation->tableCode)
@@ -254,13 +261,20 @@ class ReservationController extends Controller
                 ->exists();
 
             if ($conflict) {
-                return back()->with('error', "Cannot confirm: Table {$reservation->tableCode} is already occupied for this session.");
+                return back()->with('error', "Cannot confirm: Table {$reservation->tableCode} is already booked for this session.");
             }
         }
 
-        $reservation->update(['status' => $validated['status']]);
+        $reservation->update(['status' => $newStatus]);
 
-        return back()->with('success', "Reservation {$reservation->code} status changed to {$validated['status']}.");
+        // Send notifications via Telegram or Email
+        if ($newStatus === 'CONFIRMED' && $oldStatus !== 'CONFIRMED') {
+            $this->notificationService->notifyCustomerBookingConfirmed($reservation);
+        } elseif ($newStatus === 'CANCELLED' && $oldStatus !== 'CANCELLED') {
+            $this->notificationService->notifyCustomerBookingCancelled($reservation);
+        }
+
+        return back()->with('success', "Reservation {$reservation->code} status changed to {$newStatus}. Patron has been notified!");
     }
 
     /**
@@ -269,9 +283,13 @@ class ReservationController extends Controller
     public function destroy(Reservation $reservation): RedirectResponse
     {
         $code = $reservation->code;
+
+        // Notify customer that booking was removed
+        $this->notificationService->notifyCustomerBookingDeleted($reservation);
+
         $reservation->delete();
 
         return redirect()->route('admin.reservations.index')
-            ->with('success', "Reservation {$code} deleted.");
+            ->with('success', "Reservation {$code} deleted and patron notified.");
     }
 }

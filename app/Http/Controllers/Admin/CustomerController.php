@@ -4,12 +4,20 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Setting;
+use App\Models\TelegramBroadcast;
+use App\Services\TelegramBotService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
+    public function __construct(
+        protected TelegramBotService $botService
+    ) {}
+
     public function index(Request $request): View
     {
         $query = Customer::query();
@@ -93,28 +101,70 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'club' => ['nullable', 'string'],
             'type' => ['required', 'in:MATCHDAY,SCORE,ACOUSTIC'],
-            'message' => ['required', 'string', 'max:300'],
+            'message' => ['required', 'string', 'max:500'],
         ]);
 
-        $query = Customer::query();
+        $audience = match ($validated['type']) {
+            'ACOUSTIC' => 'ACOUSTIC',
+            default => (!empty($validated['club']) ? $validated['club'] : 'ALL'),
+        };
 
-        if ($validated['type'] === 'MATCHDAY') {
-            $query->where('notify_matchday', true);
-            if (! empty($validated['club'])) {
-                $query->where('favorite_club', $validated['club']);
-            }
-        } elseif ($validated['type'] === 'SCORE') {
-            $query->where('notify_scores', true);
-            if (! empty($validated['club'])) {
-                $query->where('favorite_club', $validated['club']);
-            }
-        } else {
-            $query->where('notify_acoustic', true);
+        $typeLabel = match ($validated['type']) {
+            'MATCHDAY' => '⚽ MATCHDAY ALERT',
+            'SCORE' => '🏆 LIVE FINAL SCORE',
+            'ACOUSTIC' => '🎸 SATURDAY ACOUSTIC NIGHT',
+            default => '📢 GURA BICHA ALERT',
+        };
+
+        $clubSuffix = !empty($validated['club']) ? " • <b>{$validated['club']} Fans</b>" : '';
+        $formattedText = "<b>{$typeLabel}</b>{$clubSuffix}\n\n"
+            . htmlspecialchars($validated['message']) . "\n\n"
+            . "📍 <i>Gura Bicha • Mexico, Addis Ababa</i>";
+
+        $webAppUrl = Setting::get('telegram_webapp_url', (string) config('services.telegram.webapp_url', env('TELEGRAM_WEBAPP_URL', url('/'))));
+
+        $replyMarkup = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '🚀 Launch Mini App', 'web_app' => ['url' => $webAppUrl]],
+                    ['text' => '🌐 Open in Browser', 'url' => $webAppUrl],
+                ],
+            ],
+        ];
+
+        // Broadcast to all matching Telegram subscribers & customers
+        $result = $this->botService->broadcast($formattedText, $replyMarkup, $audience);
+
+        // Record history in TelegramBroadcast
+        try {
+            TelegramBroadcast::create([
+                'title' => $typeLabel . (!empty($validated['club']) ? " ({$validated['club']})" : ''),
+                'category' => match ($validated['type']) {
+                    'MATCHDAY', 'SCORE' => 'FIXTURE',
+                    'ACOUSTIC' => 'EVENT',
+                    default => 'GENERAL',
+                },
+                'target_audience' => $audience,
+                'message' => $validated['message'],
+                'action_button_text' => 'Launch Mini App',
+                'action_button_url' => $webAppUrl,
+                'recipients_count' => $result['sent'],
+                'status' => $result['sent'] > 0 ? 'SENT' : ($result['total'] === 0 ? 'NO_RECIPIENTS' : 'FAILED'),
+                'sent_by_name' => Auth::user()->name ?? 'Admin',
+            ]);
+        } catch (\Throwable $e) {}
+
+        if ($result['sent'] > 0) {
+            return redirect()->route('admin.customers.index')
+                ->with('success', "Match Alert broadcast successfully sent to {$result['sent']} patron(s) (Target: {$audience})!");
         }
 
-        $recipientCount = $query->count();
+        if ($result['total'] === 0) {
+            return redirect()->route('admin.customers.index')
+                ->with('warning', "Alert broadcast saved to history. No active Telegram subscribers currently match '{$audience}'. Patrons will receive alerts once they start @GuraBichaLiveBot.");
+        }
 
         return redirect()->route('admin.customers.index')
-            ->with('success', "Notification dispatched to {$recipientCount} registered patrons!");
+            ->with('error', "Broadcast failed to send to {$result['failed']} subscriber(s). Please verify your Telegram Bot configuration.");
     }
 }

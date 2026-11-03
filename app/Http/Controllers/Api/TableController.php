@@ -62,10 +62,10 @@ class TableController extends Controller
 
             $tables = VenueTable::orderBy('code', 'asc')->get();
 
-            // Match calendar day and slot
+            // Match calendar day and slot (both CONFIRMED and PENDING hold the table)
             $confirmed = Reservation::whereDate('date', $date->toDateString())
                 ->where('slot', $slot)
-                ->where('status', 'CONFIRMED')
+                ->whereIn('status', ['CONFIRMED', 'PENDING'])
                 ->pluck('tableCode')
                 ->all();
 

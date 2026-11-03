@@ -139,23 +139,23 @@
         }
 
         /* High-contrast typography */
-        html.light .text-white {
+        html.light .text-white:not(button *):not(.bg-gold *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-emerald-600 *):not(.bg-blue-600 *):not(.bg-purple-600 *):not(.bg-sky-600 *):not(.bg-black *):not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
             color: #0f172a !important; /* Slate 900 */
         }
-        html.light .text-zinc-100 {
+        html.light .text-zinc-100:not(button *):not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
             color: #0f172a !important;
         }
-        html.light .text-zinc-200 {
+        html.light .text-zinc-200:not(button *):not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
             color: #1e293b !important; /* Slate 800 */
         }
-        html.light .text-zinc-300 {
+        html.light .text-zinc-300:not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
             color: #334155 !important; /* Slate 700 */
         }
-        html.light .text-zinc-400 {
-            color: #334155 !important; /* Slate 700 high legibility */
+        html.light .text-zinc-400:not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+            color: #475569 !important; /* Slate 600 high legibility */
         }
-        html.light .text-zinc-500 {
-            color: #475569 !important; /* Slate 600 */
+        html.light .text-zinc-500:not([class*="bg-black/"] *):not(.bg-zinc-900 *):not(.bg-zinc-950 *) {
+            color: #64748b !important; /* Slate 500 */
         }
 
         /* Rich Golden Amber in Light Mode (replaces hard-to-read bright yellow) */
@@ -244,9 +244,29 @@
             font-weight: 700;
         }
 
-        html.light .bg-admin-panel,
-        html.light .bg-slate-100 {
+        html.light .bg-admin-panel:not(button):not(a),
+        html.light .bg-slate-100:not(button):not(a) {
             color: #0f172a !important;
+        }
+
+        html.light button.bg-admin-panel,
+        html.light a.bg-admin-panel {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #1e293b !important;
+        }
+        html.light button.bg-admin-panel:hover,
+        html.light a.bg-admin-panel:hover {
+            background-color: #f1f5f9 !important;
+            border-color: #94a3b8 !important;
+            color: #0f172a !important;
+        }
+        html.light button.bg-admin-panel.text-gold,
+        html.light button.bg-admin-panel .text-gold,
+        html.light a.bg-admin-panel.text-gold,
+        html.light a.bg-admin-panel .text-gold {
+            color: #b45309 !important;
+            font-weight: 700;
         }
 
         /* Gold text on dark image overlays & badges stays vibrant gold (#f5bd19), NOT dark amber */

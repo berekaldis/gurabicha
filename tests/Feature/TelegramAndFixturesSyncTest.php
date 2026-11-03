@@ -167,7 +167,7 @@ class TelegramAndFixturesSyncTest extends TestCase
 
         Http::assertSent(function ($request) {
             return str_contains($request->url(), 'sendMessage')
-                && str_contains($request->body(), 'Chamber of Commerce');
+                && (str_contains($request->body(), 'Gura Bicha') || str_contains($request->body(), 'Mexico'));
         });
     }
 

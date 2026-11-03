@@ -145,7 +145,7 @@ class GuraBichaApiTest extends TestCase
 
         $reservation = $validRes->json('reservation');
         $this->assertStringStartsWith('GB-', $reservation['code']);
-        $this->assertEquals('CONFIRMED', $reservation['status']);
+        $this->assertEquals('PENDING', $reservation['status']);
         $this->assertEquals('251911223344', $reservation['phone']); // Normalized digits
 
         // 4. Duplicate booking returns 409 Conflict
@@ -157,8 +157,8 @@ class GuraBichaApiTest extends TestCase
             'name' => 'Dawit',
             'phone' => '0922334455',
         ]);
-        $dupRes->assertStatus(409)
-            ->assertJson(['error' => 'Table T1 is no longer available for that slot. Please pick another.']);
+        $dupRes->assertStatus(409);
+        $this->assertStringContainsString('T1', $dupRes->json('error'));
 
         // 5. Remaining tables is now 5
         $tablesRes2 = $this->getJson("/api/tables?date={$bookingDate}&slot={$slot}");

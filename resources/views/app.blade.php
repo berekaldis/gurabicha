@@ -14,9 +14,6 @@
                 var savedTheme = localStorage.getItem('GB_THEME') || 'dark';
                 document.documentElement.className = savedTheme;
 
-                var urlParams = new URLSearchParams(window.location.search);
-                var isExplicitWeb = urlParams.get('preview') === '1' || urlParams.get('web') === '1';
-
                 var isTg = (window.Telegram && window.Telegram.WebApp && (window.Telegram.WebApp.initData || (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user))) ||
                            window.TelegramWebviewProxy !== undefined ||
                            window.location.hash.indexOf('tgWebAppData') !== -1 ||
@@ -26,14 +23,8 @@
                 if (isTg) {
                     document.documentElement.classList.add('telegram-webapp');
                     document.documentElement.style.setProperty('--tg-top-inset', '56px');
-                } else if (!isExplicitWeb) {
-                    // Regular browser access: redirect directly to Telegram Bot as requested
-                    var botUrl = 'https://t.me/GuraBichaLiveBot';
-                    var table = urlParams.get('table');
-                    if (table) {
-                        botUrl += '?start=table_' + encodeURIComponent(table);
-                    }
-                    window.location.replace(botUrl);
+                } else {
+                    document.documentElement.classList.add('browser-webapp');
                 }
             } catch(e) {}
         })();
@@ -180,8 +171,8 @@
         }
 
         /* ============================================================== */
-        /* LIGHT MODE HIGH-CONTRAST PALETTES                              */
-        /* Clean, Crisp Luxury Theme for Daytime Legibility                */
+        /* LIGHT MODE HIGH-CONTRAST LUXURY PALETTE                        */
+        /* Clean, Crisp, 100% Readable for Daytime Outdoor / Indoor Light  */
         /* ============================================================== */
         html.light {
             color-scheme: light;
@@ -198,7 +189,7 @@
             background-color: #ffffff !important;
             border-color: #e2e8f0 !important;
             color: #0f172a !important;
-            box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
         }
         html.light .bg-dark-panel {
             background-color: #f8fafc !important;
@@ -211,35 +202,37 @@
         html.light header {
             background-color: rgba(255, 255, 255, 0.98) !important;
             border-color: #e2e8f0 !important;
-            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.05) !important;
         }
         html.light nav.fixed {
             background-color: rgba(255, 255, 255, 0.98) !important;
             border-color: #e2e8f0 !important;
-            box-shadow: 0 -2px 14px rgba(15, 23, 42, 0.05) !important;
+            box-shadow: 0 -2px 16px rgba(15, 23, 42, 0.06) !important;
         }
 
-        /* Light Mode High-Contrast Typography */
-        html.light .text-white {
+        /* Light Mode High-Contrast Typography (protected against buttons & badges) */
+        html.light .text-white:not(button *):not(.bg-gold *):not(.bg-red-600 *):not(.bg-red-700 *):not(.bg-emerald-600 *):not(.bg-purple-600 *):not(.bg-blue-600 *):not([class*="bg-black/"] *):not(.hero-banner-card *) {
             color: #0f172a;
         }
-        html.light .text-zinc-100 {
+        html.light .text-zinc-100:not(button *):not([class*="bg-black/"] *):not(.hero-banner-card *) {
             color: #0f172a;
         }
-        html.light .text-zinc-200 {
+        html.light .text-zinc-200:not(button *):not([class*="bg-black/"] *):not(.hero-banner-card *) {
             color: #1e293b;
         }
-        html.light .text-zinc-300 {
+        html.light .text-zinc-300:not([class*="bg-black/"] *):not(.hero-banner-card *) {
             color: #334155;
         }
-        html.light .text-zinc-400 {
-            color: #475569;
-        }
-        html.light .text-zinc-500 {
+        html.light .text-zinc-400:not([class*="bg-black/"] *):not(.hero-banner-card *) {
             color: #64748b;
         }
+        html.light .text-zinc-500:not([class*="bg-black/"] *):not(.hero-banner-card *) {
+            color: #64748b;
+        }
+
+        /* Luxury Readable Amber Gold in Light Mode */
         html.light .text-gold {
-            color: #b45309 !important; /* Rich readable amber in light mode */
+            color: #b45309 !important; /* Rich amber on light backgrounds */
         }
         html.light .text-gold-light {
             color: #92400e !important;
@@ -250,14 +243,17 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* VIP Gold Buttons (Black bold text on Gold) */
+        /* VIP Gold Buttons (Solid Golden Yellow with Bold Black Text) */
         html.light .bg-gold,
-        html.light .bg-gold *,
         html.light button.bg-gold,
-        html.light button.bg-gold *,
-        html.light a.bg-gold,
-        html.light a.bg-gold * {
+        html.light a.bg-gold {
             background-color: #f5bd19 !important;
+            color: #000000 !important;
+            border-color: #eab308 !important;
+        }
+        html.light .bg-gold *,
+        html.light button.bg-gold *,
+        html.light a.bg-gold * {
             color: #000000 !important;
             font-weight: 700;
         }
@@ -275,26 +271,42 @@
         /* Secondary Panels and Inactive Buttons in Light Mode */
         html.light button.bg-dark-panel,
         html.light a.bg-dark-panel {
-            background-color: #f1f5f9 !important;
-            border-color: #cbd5e1 !important;
-            color: #0f172a !important;
-        }
-        html.light button.bg-dark-panel *,
-        html.light a.bg-dark-panel * {
-            color: #0f172a !important;
+            background-color: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
         html.light button.bg-dark-panel:hover,
         html.light a.bg-dark-panel:hover {
-            background-color: #e2e8f0 !important;
+            background-color: #f1f5f9 !important;
             border-color: #94a3b8 !important;
-            color: #000000 !important;
+            color: #0f172a !important;
         }
         html.light button.bg-dark-panel.text-gold,
-        html.light button.bg-dark-panel .text-gold {
+        html.light button.bg-dark-panel .text-gold,
+        html.light a.bg-dark-panel.text-gold,
+        html.light a.bg-dark-panel .text-gold {
             color: #b45309 !important;
         }
 
-        /* Colored Action Buttons & Dark Photo Overlays MUST maintain crisp white text */
+        /* Bottom Fixed Navigation Bar in Light Mode */
+        html.light nav.fixed button {
+            color: #64748b;
+        }
+        html.light nav.fixed button.text-gold,
+        html.light nav.fixed button.text-gold span {
+            color: #b45309 !important;
+            font-weight: 700;
+        }
+        html.light nav.fixed button:hover {
+            color: #0f172a;
+        }
+        html.light nav.fixed button.bg-gold {
+            border-color: #ffffff !important;
+            box-shadow: 0 8px 20px rgba(245, 189, 25, 0.4) !important;
+        }
+
+        /* Colored Action Buttons & Overlays MUST preserve crisp white text */
         html.light .bg-red-600,
         html.light .bg-red-600 *,
         html.light button.bg-red-600,
@@ -1311,24 +1323,35 @@
                 </div>
             </div>
 
-            <!-- STEP 5: CONFIRMATION SUCCESS -->
+            <!-- STEP 5: CONFIRMATION / REQUEST RECEIVED SUCCESS -->
             <div x-show="wizardStep === 5" class="space-y-4 text-center">
                 <div class="p-6 rounded-2xl bg-dark-card border border-gold/40 shadow-2xl space-y-4">
                     <div class="w-16 h-16 rounded-full bg-gold/20 border border-gold flex items-center justify-center mx-auto text-gold shadow-lg shadow-gold/20">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <template x-if="confirmedReservation && confirmedReservation.status === 'CONFIRMED'">
+                            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </template>
+                        <template x-if="!confirmedReservation || confirmedReservation.status !== 'CONFIRMED'">
+                            <span class="text-3xl">⏳</span>
+                        </template>
                     </div>
 
                     <div>
-                        <span class="text-xs font-semibold text-gold tracking-widest uppercase">ACOUSTIC NIGHT CONFIRMED</span>
-                        <h3 class="font-display text-3xl font-bold text-white mt-1">Booking Confirmed!</h3>
-                        <p class="text-xs text-zinc-300 mt-1">Your table has been reserved at Gura Bicha, Mexico Chamber of Commerce Bldg.</p>
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full tracking-wider uppercase inline-block"
+                              :class="confirmedReservation && confirmedReservation.status === 'CONFIRMED' ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-500/50' : 'bg-amber-900/60 text-amber-300 border border-amber-500/50 animate-pulse'"
+                              x-text="confirmedReservation && confirmedReservation.status === 'CONFIRMED' ? 'ACOUSTIC NIGHT CONFIRMED' : 'RESERVATION REQUEST RECEIVED · PENDING CONFIRMATION'"></span>
+                        <h3 class="font-display text-2xl sm:text-3xl font-bold text-white mt-2" x-text="confirmedReservation && confirmedReservation.status === 'CONFIRMED' ? 'Booking Confirmed!' : 'Request Received — Pending Admin Confirmation'"></h3>
+                        <p class="text-xs text-zinc-300 mt-1" x-text="confirmedReservation && confirmedReservation.status === 'CONFIRMED' ? 'Your table is confirmed at Gura Bicha, Mexico.' : 'Your table request has been received by Gura Bicha management. Our team will review and confirm your table shortly. You will be notified via Telegram / Email!'"></p>
                     </div>
 
                     <!-- BOOKING CODE CARD -->
                     <div class="p-4 rounded-xl bg-dark-panel border border-gold/40 inline-block w-full">
                         <span class="text-xs text-zinc-300 block uppercase tracking-wider font-semibold">Your Booking Code</span>
                         <span class="font-display text-3xl font-bold text-gold tracking-widest block my-1" x-text="confirmedReservation ? confirmedReservation.code : ''"></span>
-                        <span class="text-[11px] text-zinc-400">Show this code or your phone number upon arrival.</span>
+                        <div class="flex items-center justify-center space-x-2 mt-1">
+                            <span class="text-[11px] px-2 py-0.5 rounded font-bold"
+                                  :class="confirmedReservation && confirmedReservation.status === 'CONFIRMED' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-amber-900/60 text-amber-300 animate-pulse'"
+                                  x-text="confirmedReservation && confirmedReservation.status === 'CONFIRMED' ? 'Status: Confirmed' : 'Status: ⏳ Pending Admin Review'"></span>
+                        </div>
                     </div>
 
                     <!-- RESERVATION SUMMARY -->
@@ -1347,7 +1370,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-zinc-400">Location:</span>
-                            <span class="font-semibold text-white">Mexico, Chamber of Commerce Bldg</span>
+                            <span class="font-semibold text-white">Mexico, Gura Bicha</span>
                         </div>
                     </div>
 
@@ -1712,7 +1735,9 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2">
                                 <span class="font-display font-bold text-xl text-gold" x-text="res.code"></span>
-                                <span class="text-xs px-2.5 py-0.5 rounded font-bold" :class="res.status === 'CONFIRMED' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-red-900/60 text-red-300'" x-text="res.status"></span>
+                                <span class="text-xs px-2.5 py-0.5 rounded font-bold"
+                                      :class="res.status === 'CONFIRMED' ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-600' : (res.status === 'PENDING' ? 'bg-amber-900/60 text-amber-300 border border-amber-600 animate-pulse' : 'bg-red-900/60 text-red-300 border border-red-700')"
+                                      x-text="res.status === 'PENDING' ? '⏳ PENDING' : (res.status === 'CONFIRMED' ? '✅ CONFIRMED' : '❌ CANCELLED')"></span>
                             </div>
                             <span class="text-xs text-zinc-300 font-semibold" x-text="formatDateShort(res.date)"></span>
                         </div>
@@ -1728,7 +1753,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-zinc-400">Venue:</span>
-                                <span class="font-medium text-gold">Mexico Chamber of Commerce Bldg</span>
+                                <span class="font-medium text-gold">Mexico, Gura Bicha</span>
                             </div>
                         </div>
 
@@ -1737,7 +1762,7 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span>Add to Calendar (.ICS)</span>
                             </a>
-                            <template x-if="res.status === 'CONFIRMED'">
+                            <template x-if="res.status === 'CONFIRMED' || res.status === 'PENDING'">
                                 <button @click="cancelReservation(res.id)" class="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-semibold transition border border-red-800">
                                     Cancel Booking
                                 </button>

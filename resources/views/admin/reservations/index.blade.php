@@ -43,9 +43,10 @@
             <!-- Status & Submit -->
             <div class="flex space-x-2">
                 <select name="status" class="w-1/2 bg-admin-panel border border-admin-border rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-gold">
-                    <option value="">Status</option>
-                    <option value="CONFIRMED" {{ request('status') === 'CONFIRMED' ? 'selected' : '' }}>Confirmed</option>
-                    <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
+                    <option value="">All Statuses</option>
+                    <option value="PENDING" {{ request('status') === 'PENDING' ? 'selected' : '' }}>⏳ Pending</option>
+                    <option value="CONFIRMED" {{ request('status') === 'CONFIRMED' ? 'selected' : '' }}>✅ Confirmed</option>
+                    <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>❌ Cancelled</option>
                 </select>
                 <button type="submit" class="w-1/2 rounded-xl bg-admin-panel hover:bg-gold text-zinc-300 hover:text-black font-semibold text-xs border border-admin-border transition">
                     Filter
@@ -104,33 +105,61 @@
                                 @endif
                             </td>
                             <td class="py-3 px-4">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $res->status === 'CONFIRMED' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-red-900/60 text-red-300' }}">
-                                    {{ $res->status }}
-                                </span>
+                                @if($res->status === 'CONFIRMED')
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                        ✅ Confirmed
+                                    </span>
+                                @elseif($res->status === 'PENDING')
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse">
+                                        ⏳ Pending
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">
+                                        ❌ Cancelled
+                                    </span>
+                                @endif
                             </td>
-                            <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+                            <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                                <!-- Quick Confirm for Pending -->
+                                @if($res->status === 'PENDING')
+                                    <form method="POST" action="{{ route('admin.reservations.status', $res) }}" class="inline">
+                                        @csrf
+                                        <input type="hidden" name="status" value="CONFIRMED">
+                                        <button type="submit" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-sm">
+                                            ✓ Confirm
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('admin.reservations.status', $res) }}" class="inline">
+                                        @csrf
+                                        <input type="hidden" name="status" value="CANCELLED">
+                                        <button type="submit" class="px-2 py-1 rounded-lg bg-admin-panel border border-admin-border text-red-400 hover:bg-red-500/10 text-xs transition">
+                                            Reject
+                                        </button>
+                                    </form>
+                                @elseif($res->status === 'CONFIRMED')
+                                    <form method="POST" action="{{ route('admin.reservations.status', $res) }}" class="inline">
+                                        @csrf
+                                        <input type="hidden" name="status" value="CANCELLED">
+                                        <button type="submit" class="text-xs text-red-400 hover:underline">Cancel</button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('admin.reservations.status', $res) }}" class="inline">
+                                        @csrf
+                                        <input type="hidden" name="status" value="CONFIRMED">
+                                        <button type="submit" class="text-xs text-emerald-400 hover:underline">Re-confirm</button>
+                                    </form>
+                                @endif
+
                                 <!-- Edit Button -->
-                                <button @click="activeReservation = {{ json_encode($res) }}; showEditModal = true" class="text-zinc-400 hover:text-gold transition">
+                                <button @click="activeReservation = {{ json_encode($res) }}; showEditModal = true" class="text-zinc-400 hover:text-gold transition text-xs px-1.5 py-1">
                                     Edit
                                 </button>
 
-                                <!-- Toggle Status -->
-                                <form method="POST" action="{{ route('admin.reservations.status', $res) }}" class="inline">
-                                    @csrf
-                                    @if($res->status === 'CONFIRMED')
-                                        <input type="hidden" name="status" value="CANCELLED">
-                                        <button type="submit" class="text-red-400 hover:underline">Cancel</button>
-                                    @else
-                                        <input type="hidden" name="status" value="CONFIRMED">
-                                        <button type="submit" class="text-emerald-400 hover:underline">Confirm</button>
-                                    @endif
-                                </form>
-
                                 <!-- Delete -->
-                                <form method="POST" action="{{ route('admin.reservations.destroy', $res) }}" class="inline" onsubmit="return confirm('Permanently delete this reservation?');">
+                                <form method="POST" action="{{ route('admin.reservations.destroy', $res) }}" class="inline" onsubmit="return confirm('Permanently delete this reservation and notify patron?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-zinc-500 hover:text-red-400">✕</button>
+                                    <button type="submit" class="text-zinc-500 hover:text-red-400 p-1" title="Delete Booking">✕</button>
                                 </form>
                             </td>
                         </tr>

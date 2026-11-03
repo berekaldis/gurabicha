@@ -21,71 +21,79 @@
     downloadCard() {
         this.downloadingCard = true;
         const canvas = document.createElement('canvas');
-        canvas.width = 800;
-        canvas.height = 1100;
+        canvas.width = 540;
+        canvas.height = 700;
         const ctx = canvas.getContext('2d');
 
-        // Background
-        ctx.fillStyle = '#0a0a0c';
+        // Clean Modern Dark Background
+        ctx.fillStyle = '#0f1117';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Gold Outer Border
-        ctx.lineWidth = 12;
-        ctx.strokeStyle = '#d4af37';
-        ctx.strokeRect(30, 30, 740, 1040);
-
-        // Gold Inner Accent Border
-        ctx.lineWidth = 2;
+        // Minimalist Single Gold Border
+        ctx.lineWidth = 3;
         ctx.strokeStyle = '#f5bd19';
-        ctx.strokeRect(44, 44, 712, 1012);
+        ctx.strokeRect(18, 18, 504, 664);
 
-        // Header Title
+        // Header Title: GURA BICHA
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 52px sans-serif';
+        ctx.font = 'bold 36px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('GURA BICHA', 400, 140);
+        ctx.fillText('GURA BICHA', 270, 75);
 
-        ctx.fillStyle = '#d4af37';
-        ctx.font = 'bold 22px sans-serif';
-        ctx.fillText('SPORTS BAR & ACOUSTIC LOUNGE', 400, 180);
+        // Subtitle
+        ctx.fillStyle = '#f5bd19';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('SPORTS BAR & ACOUSTIC LOUNGE', 270, 102);
 
         ctx.fillStyle = '#94a3b8';
-        ctx.font = '18px sans-serif';
-        ctx.fillText('Mexico, Gura Bicha · Addis Ababa', 400, 215);
+        ctx.font = '12px sans-serif';
+        ctx.fillText('Mexico, Gura Bicha · Addis Ababa', 270, 124);
 
-        // Table Badge
-        const tableLabel = this.selectedTable === 'ALL' ? 'VIP GUEST' : 'TABLE ' + this.selectedTable;
-        ctx.fillStyle = '#d4af37';
-        ctx.fillRect(260, 250, 280, 50);
+        // Table Pill (Compact & Smart)
+        const isTable = this.selectedTable !== 'ALL';
+        const tableLabel = isTable ? 'TABLE ' + this.selectedTable : 'VIP GUEST';
+        ctx.fillStyle = '#f5bd19';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(185, 142, 170, 32, 16);
+        } else {
+            ctx.rect(185, 142, 170, 32);
+        }
+        ctx.fill();
+
         ctx.fillStyle = '#000000';
-        ctx.font = 'bold 26px sans-serif';
-        ctx.fillText(tableLabel, 400, 285);
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText(tableLabel, 270, 164);
 
-        // Load and Draw QR Code
+        // Load and Draw Clean Sharp QR Code
         const qrImg = new Image();
         qrImg.crossOrigin = 'anonymous';
-        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=20&data=' + encodeURIComponent(this.activeQrUrl);
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=15&data=' + encodeURIComponent(this.activeQrUrl);
         qrImg.onload = () => {
             // White card behind QR
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.roundRect(175, 340, 450, 450, 24);
+            if (ctx.roundRect) {
+                ctx.roundRect(105, 195, 330, 330, 20);
+            } else {
+                ctx.rect(105, 195, 330, 330);
+            }
             ctx.fill();
 
-            ctx.drawImage(qrImg, 190, 355, 420, 420);
+            ctx.drawImage(qrImg, 120, 210, 300, 300);
 
-            // Instructions below QR
+            // Instructions below QR (Simple & Small)
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 30px sans-serif';
-            ctx.fillText('SCAN WITH CAMERA', 400, 860);
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText('SCAN WITH CAMERA', 270, 565);
 
-            ctx.fillStyle = '#d4af37';
-            ctx.font = 'bold 24px sans-serif';
-            ctx.fillText('TO LAUNCH TELEGRAM MINI APP', 400, 905);
+            ctx.fillStyle = '#f5bd19';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText('Open Menu, Live Matches & Acoustic Bookings', 270, 595);
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = '16px monospace';
-            ctx.fillText('@GuraBichaLiveBot', 400, 950);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '13px monospace';
+            ctx.fillText('@GuraBichaLiveBot', 270, 628);
 
             // Download trigger
             const link = document.createElement('a');

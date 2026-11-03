@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\Feedback;
 use App\Models\Setting;
 use App\Models\SportMatch;
 use App\Models\TelegramBroadcast;
 use App\Models\TelegramSubscriber;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -112,29 +114,51 @@ class TelegramBotService
      */
     public function broadcast(string $text, ?array $replyMarkup = null, ?string $audience = 'ALL'): array
     {
+        // 1. Gather chat IDs from TelegramSubscriber
         $subscribers = TelegramSubscriber::forAudience($audience)->get();
+        $subscriberChatIds = $subscribers->pluck('chat_id')->toArray();
+
+        // 2. Gather chat IDs from registered Customers with telegram_chat_id
+        $customerQuery = Customer::whereNotNull('telegram_chat_id')
+            ->where('telegram_chat_id', '!=', '');
+
+        if (!empty($audience) && $audience !== 'ALL') {
+            if ($audience === 'ACOUSTIC') {
+                $customerQuery->where('notify_acoustic', true);
+            } else {
+                $customerQuery->where(function ($q) use ($audience) {
+                    $q->where('favorite_club', $audience)
+                      ->orWhereNull('favorite_club');
+                });
+            }
+        }
+
+        $customerChatIds = $customerQuery->pluck('telegram_chat_id')->toArray();
+
+        // Unique target chat IDs
+        $allChatIds = array_values(array_unique(array_filter(array_merge($subscriberChatIds, $customerChatIds))));
 
         $sent = 0;
         $failed = 0;
         $recipientIds = [];
 
-        foreach ($subscribers as $subscriber) {
+        foreach ($allChatIds as $chatId) {
             try {
-                $res = $this->sendMessage($subscriber->chat_id, $text, $replyMarkup);
+                $res = $this->sendMessage($chatId, $text, $replyMarkup);
                 if (!empty($res['ok'])) {
                     $sent++;
-                    $recipientIds[] = $subscriber->chat_id;
+                    $recipientIds[] = (string) $chatId;
                 } else {
                     $failed++;
                 }
             } catch (\Throwable $e) {
-                Log::error("Failed broadcasting to Telegram subscriber {$subscriber->chat_id}: " . $e->getMessage());
+                Log::error("Failed broadcasting to Telegram chat {$chatId}: " . $e->getMessage());
                 $failed++;
             }
         }
 
         return [
-            'total' => $subscribers->count(),
+            'total' => count($allChatIds),
             'sent' => $sent,
             'failed' => $failed,
             'recipients' => $recipientIds,
@@ -228,6 +252,77 @@ class TelegramBotService
                     $this->sendVenueInfo($cqChatId);
                 } elseif ($data === 'cmd_feedback') {
                     $this->handleFeedbackCommand($cqChatId, '/feedback', $from['first_name'] ?? null, $from['last_name'] ?? null, $from['username'] ?? null);
+                } elseif (str_starts_with($data, 'fb_rate_')) {
+                    $rating = (int) substr($data, 8);
+                    $rating = max(1, min(5, $rating));
+                    $senderName = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? '')) ?: 'Patron';
+                    $username = $from['username'] ?? null;
+
+                    Cache::put("tg_fb_rating_{$cqChatId}", $rating, 900);
+
+                    // Persist initial feedback record immediately with the selected rating
+                    try {
+                        $fb = Feedback::create([
+                            'telegram_chat_id' => (string) $cqChatId,
+                            'telegram_username' => $username,
+                            'name' => $senderName,
+                            'category' => 'GENERAL',
+                            'rating' => $rating,
+                            'message' => "Rated {$rating} star" . ($rating > 1 ? 's' : '') . " via Telegram Bot",
+                            'status' => 'NEW',
+                            'source' => 'BOT',
+                        ]);
+                        Cache::put("tg_fb_last_id_{$cqChatId}", $fb->id, 900);
+                    } catch (\Throwable $e) {
+                        Log::error("Failed to create rating feedback: " . $e->getMessage());
+                    }
+
+                    $stars = str_repeat('⭐', $rating);
+                    $msg = "{$stars} <b>Rated {$rating}/5 Stars! Thank You!</b>\n\n"
+                         . "Would you like to leave a suggestion or comment? <b>Type and send your message below</b>, or tap a category to specify:";
+
+                    $categoryKeyboard = [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => '🍔 Food', 'callback_data' => 'fb_cat_FOOD'],
+                                ['text' => '🍸 Bar & Drinks', 'callback_data' => 'fb_cat_DRINKS'],
+                                ['text' => '🎸 Acoustic Live', 'callback_data' => 'fb_cat_ACOUSTIC'],
+                            ],
+                            [
+                                ['text' => '⚽ Big Screen', 'callback_data' => 'fb_cat_SPORTS'],
+                                ['text' => '🤵 Hospitality', 'callback_data' => 'fb_cat_SERVICE'],
+                                ['text' => '💡 General Idea', 'callback_data' => 'fb_cat_SUGGESTION'],
+                            ],
+                            [
+                                [
+                                    'text' => '🚀 Open Mini App Feedback Form',
+                                    'web_app' => ['url' => rtrim($this->webAppUrl, '/') . '#feedback'],
+                                ],
+                            ],
+                        ],
+                    ];
+
+                    $this->sendMessage($cqChatId, $msg, $categoryKeyboard);
+
+                } elseif (str_starts_with($data, 'fb_cat_')) {
+                    $category = substr($data, 7);
+                    $fbId = Cache::get("tg_fb_last_id_{$cqChatId}");
+                    if ($fbId) {
+                        Feedback::where('id', $fbId)->update(['category' => $category]);
+                    }
+                    Cache::put("tg_fb_cat_{$cqChatId}", $category, 900);
+
+                    $catNames = [
+                        'FOOD' => '🍔 Food & Kitchen',
+                        'DRINKS' => '🍸 Bar & Cocktails',
+                        'ACOUSTIC' => '🎸 Saturday Acoustic Night',
+                        'SPORTS' => '⚽ Football Match Screening',
+                        'SERVICE' => '🤵 Table Service & Hospitality',
+                        'SUGGESTION' => '💡 General Idea / Suggestion',
+                    ];
+                    $label = $catNames[$category] ?? $category;
+
+                    $this->sendMessage($cqChatId, "📝 <b>Category: {$label}</b>\n\nPlease reply with your suggestions or feedback below (or type <code>/suggest [your message]</code>):");
                 }
             }
             return;
@@ -265,6 +360,54 @@ class TelegramBotService
         }
 
         $senderName = $firstName ?? 'Patron';
+
+        // Check if this is a follow-up text comment to an active feedback rating flow
+        if (!str_starts_with($text, '/')) {
+            $pendingFbId = Cache::pull("tg_fb_last_id_{$chatId}");
+            if ($pendingFbId) {
+                try {
+                    $fb = Feedback::find($pendingFbId);
+                    if ($fb) {
+                        $fb->update([
+                            'message' => $text,
+                            'name' => trim(($firstName ?? '') . ' ' . ($lastName ?? '')) ?: $fb->name,
+                            'telegram_username' => $username ?: $fb->telegram_username,
+                        ]);
+
+                        // Notify Admin if telegram_admin_chat_id is set
+                        $adminChatId = Setting::get('telegram_admin_chat_id');
+                        if ($adminChatId && $adminChatId != $chatId) {
+                            $userHandle = $username ? "@{$username}" : $senderName;
+                            $stars = str_repeat('⭐', (int) ($fb->rating ?? 5));
+                            $adminMsg = "💬 <b>New Telegram Bot Feedback!</b>\n\n"
+                                . "<b>From:</b> {$userHandle} (ID: {$chatId})\n"
+                                . "<b>Rating:</b> {$stars} ({$fb->rating}/5)\n"
+                                . "<b>Category:</b> {$fb->category}\n\n"
+                                . "<b>Message:</b>\n" . htmlspecialchars($text) . "\n\n"
+                                . "📍 <i>Gura Bicha Mexico</i>";
+                            $this->sendMessage($adminChatId, $adminMsg);
+                        }
+
+                        $stars = str_repeat('⭐', (int) ($fb->rating ?? 5));
+                        $thankMsg = "🙏 <b>Thank You, {$senderName}!</b>\n\n"
+                                  . "Your {$stars} rating and feedback have been shared directly with Gura Bicha management.\n\n"
+                                  . "<i>We appreciate you helping us make Addis Ababa's premier sports & acoustic lounge even better!</i> ✨";
+
+                        $this->sendMessage($chatId, $thankMsg, [
+                            'inline_keyboard' => [
+                                [
+                                    ['text' => '🚀 Launch Mini App', 'web_app' => ['url' => $this->webAppUrl]],
+                                ],
+                            ],
+                        ]);
+                        return;
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("Failed to append message to feedback {$pendingFbId}: " . $e->getMessage());
+                }
+            }
+        }
+
         $command = strtolower(explode(' ', $text)[0]);
 
         switch ($command) {
@@ -319,20 +462,32 @@ class TelegramBotService
         $senderName = trim(($firstName ?? '') . ' ' . ($lastName ?? '')) ?: 'Patron';
 
         if (empty($body)) {
-            $msg = "✍️ <b>Gura Bicha Feedback & Suggestions</b>\n\n"
-                 . "We would love to hear from you! Please send your suggestions directly:\n\n"
-                 . "<code>/feedback [Your feedback here]</code>\n"
-                 . "or\n"
-                 . "<code>/suggest [Your suggestion here]</code>\n\n"
-                 . "<b>Example:</b>\n"
-                 . "<code>/feedback The acoustic band was phenomenal! Please add more cocktail varieties.</code>\n\n"
-                 . "🌟 <i>Every suggestion helps us deliver the ultimate Game & Groove experience!</i>";
+            $msg = "⭐️ <b>Gura Bicha Feedback & Suggestions</b>\n\n"
+                 . "How would you rate your experience at Gura Bicha Sports Bar & Acoustic Lounge?\n\n"
+                 . "<b>Tap a star rating below to rate us:</b>";
 
             $keyboard = [
                 'inline_keyboard' => [
                     [
+                        ['text' => '⭐ 1', 'callback_data' => 'fb_rate_1'],
+                        ['text' => '⭐⭐ 2', 'callback_data' => 'fb_rate_2'],
+                        ['text' => '⭐⭐⭐ 3', 'callback_data' => 'fb_rate_3'],
+                        ['text' => '⭐⭐⭐⭐ 4', 'callback_data' => 'fb_rate_4'],
+                        ['text' => '⭐⭐⭐⭐⭐ 5', 'callback_data' => 'fb_rate_5'],
+                    ],
+                    [
+                        ['text' => '🍔 Food', 'callback_data' => 'fb_cat_FOOD'],
+                        ['text' => '🍸 Bar', 'callback_data' => 'fb_cat_DRINKS'],
+                        ['text' => '🎸 Acoustic', 'callback_data' => 'fb_cat_ACOUSTIC'],
+                    ],
+                    [
+                        ['text' => '⚽ Big Screen', 'callback_data' => 'fb_cat_SPORTS'],
+                        ['text' => '🤵 Service', 'callback_data' => 'fb_cat_SERVICE'],
+                        ['text' => '💡 Suggestion', 'callback_data' => 'fb_cat_SUGGESTION'],
+                    ],
+                    [
                         [
-                            'text' => '🚀 Open Mini App Feedback',
+                            'text' => '🚀 Open Mini App Feedback Form',
                             'web_app' => ['url' => rtrim($this->webAppUrl, '/') . '#feedback'],
                         ],
                     ],
@@ -343,13 +498,17 @@ class TelegramBotService
             return;
         }
 
+        $cachedRating = Cache::pull("tg_fb_rating_{$chatId}");
+        $rating = $cachedRating ? (int) $cachedRating : 5;
+        $category = Cache::pull("tg_fb_cat_{$chatId}") ?: (str_starts_with(strtolower($text), '/suggest') ? 'SUGGESTION' : 'GENERAL');
+
         try {
             $fb = Feedback::create([
                 'telegram_chat_id' => (string) $chatId,
                 'telegram_username' => $username,
                 'name' => $senderName,
-                'category' => (str_starts_with(strtolower($text), '/suggest')) ? 'SUGGESTION' : 'GENERAL',
-                'rating' => 5,
+                'category' => $category,
+                'rating' => $rating,
                 'message' => $body,
                 'status' => 'NEW',
                 'source' => 'BOT',
@@ -359,16 +518,19 @@ class TelegramBotService
             $adminChatId = Setting::get('telegram_admin_chat_id');
             if ($adminChatId && $adminChatId != $chatId) {
                 $userHandle = $username ? "@{$username}" : $senderName;
+                $stars = str_repeat('⭐', $rating);
                 $adminMsg = "💬 <b>New Telegram Bot Feedback!</b>\n\n"
                     . "<b>From:</b> {$userHandle} (ID: {$chatId})\n"
+                    . "<b>Rating:</b> {$stars} ({$rating}/5)\n"
                     . "<b>Category:</b> {$fb->category}\n\n"
                     . "<b>Message:</b>\n" . htmlspecialchars($body) . "\n\n"
                     . "📍 <i>Gura Bicha Mexico</i>";
                 $this->sendMessage($adminChatId, $adminMsg);
             }
 
+            $stars = str_repeat('⭐', $rating);
             $thankMsg = "🙏 <b>Thank You, {$senderName}!</b>\n\n"
-                      . "Your feedback has been saved and shared directly with Gura Bicha management.\n\n"
+                      . "Your {$stars} rating and feedback have been shared directly with Gura Bicha management.\n\n"
                       . "<i>We appreciate you helping us make Addis Ababa's premier sports & acoustic lounge even better!</i> ✨";
 
             $keyboard = [
