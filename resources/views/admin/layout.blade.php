@@ -210,19 +210,29 @@
         html.light .bg-zinc-900 .text-white,
         html.light .bg-zinc-950 .text-white,
         html.light .bg-purple-600,
-        html.light .bg-purple-600 .text-white,
+        html.light .bg-purple-600 *,
         html.light button.bg-purple-600,
-        html.light button.bg-purple-600 span,
+        html.light button.bg-purple-600 *,
         html.light .bg-sky-600,
-        html.light .bg-sky-600 .text-white,
+        html.light .bg-sky-600 *,
         html.light button.bg-sky-600,
-        html.light button.bg-sky-600 span,
-        html.light button.bg-gold .text-black {
+        html.light button.bg-sky-600 * {
             color: #ffffff !important;
         }
-        html.light button.bg-gold .text-black,
-        html.light .bg-gold.text-black {
+
+        html.light .bg-gold,
+        html.light .bg-gold *,
+        html.light button.bg-gold,
+        html.light button.bg-gold *,
+        html.light a.bg-gold,
+        html.light a.bg-gold * {
             color: #000000 !important;
+            font-weight: 700;
+        }
+
+        html.light .bg-admin-panel,
+        html.light .bg-slate-100 {
+            color: #0f172a !important;
         }
 
         /* Gold text on dark image overlays & badges stays vibrant gold (#f5bd19), NOT dark amber */

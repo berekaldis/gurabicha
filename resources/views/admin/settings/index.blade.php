@@ -6,16 +6,99 @@
 
 @section('content')
 <div class="space-y-8" x-data="{
-    baseMenuUrl: '{{ $menuPublicUrl }}',
+    telegramBotUrl: 'https://t.me/GuraBichaLiveBot',
     selectedTable: 'ALL',
     copied: false,
-    get activeMenuUrl() {
-        return this.selectedTable === 'ALL' ? this.baseMenuUrl : this.baseMenuUrl + '?table=' + this.selectedTable;
+    downloadingCard: false,
+    get activeQrUrl() {
+        return this.selectedTable === 'ALL' ? this.telegramBotUrl : this.telegramBotUrl + '?start=table_' + this.selectedTable;
     },
-    copyMenuLink() {
-        navigator.clipboard.writeText(this.activeMenuUrl);
+    copyLink() {
+        navigator.clipboard.writeText(this.activeQrUrl);
         this.copied = true;
         setTimeout(() => this.copied = false, 2500);
+    },
+    downloadCard() {
+        this.downloadingCard = true;
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 1100;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#0a0a0c';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Gold Outer Border
+        ctx.lineWidth = 12;
+        ctx.strokeStyle = '#d4af37';
+        ctx.strokeRect(30, 30, 740, 1040);
+
+        // Gold Inner Accent Border
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#f5bd19';
+        ctx.strokeRect(44, 44, 712, 1012);
+
+        // Header Title
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 52px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('GURA BICHA', 400, 140);
+
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('SPORTS BAR & ACOUSTIC LOUNGE', 400, 180);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '18px sans-serif';
+        ctx.fillText('Mexico, Gura Bicha · Addis Ababa', 400, 215);
+
+        // Table Badge
+        const tableLabel = this.selectedTable === 'ALL' ? 'VIP GUEST' : 'TABLE ' + this.selectedTable;
+        ctx.fillStyle = '#d4af37';
+        ctx.fillRect(260, 250, 280, 50);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillText(tableLabel, 400, 285);
+
+        // Load and Draw QR Code
+        const qrImg = new Image();
+        qrImg.crossOrigin = 'anonymous';
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=20&data=' + encodeURIComponent(this.activeQrUrl);
+        qrImg.onload = () => {
+            // White card behind QR
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(175, 340, 450, 450, 24);
+            ctx.fill();
+
+            ctx.drawImage(qrImg, 190, 355, 420, 420);
+
+            // Instructions below QR
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillText('SCAN WITH CAMERA', 400, 860);
+
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText('TO LAUNCH TELEGRAM MINI APP', 400, 905);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '16px monospace';
+            ctx.fillText('@GuraBichaLiveBot', 400, 950);
+
+            // Download trigger
+            const link = document.createElement('a');
+            link.download = 'gura-bicha-tent-card-' + this.selectedTable + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            this.downloadingCard = false;
+        };
+        qrImg.onerror = () => {
+            alert('Could not download tent card. Please try again.');
+            this.downloadingCard = false;
+        };
+        qrImg.src = qrUrl;
     }
 }">
 
@@ -174,23 +257,23 @@
                     <div x-show="selectedTable !== 'ALL'" class="mb-2 px-3 py-0.5 rounded-full bg-black text-gold text-xs font-black tracking-widest uppercase">
                         <span x-text="'TABLE ' + selectedTable"></span>
                     </div>
-                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=10&data=' + encodeURIComponent(activeMenuUrl)"
-                        alt="Gura Bicha Digital Menu QR Code"
+                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=' + encodeURIComponent(activeQrUrl)"
+                        alt="Gura Bicha Telegram Bot QR Code"
                         class="w-48 h-48 rounded-lg shadow-sm">
                     <div class="mt-3 text-center">
                         <span class="text-[11px] font-black tracking-widest text-black uppercase">Gura Bicha • Addis Ababa</span>
-                        <p class="text-[10px] text-zinc-600 mt-0.5 font-mono">Scan for Live Food & Drinks Menu</p>
+                        <p class="text-[10px] text-zinc-600 mt-0.5 font-mono">Scan to launch Telegram Mini App</p>
                     </div>
                 </div>
 
                 <!-- MENU LINK & ACTIONS -->
                 <div class="space-y-3 pt-2">
                     <div>
-                        <label class="block text-[11px] text-zinc-400 mb-1">Target Menu URL:</label>
+                        <label class="block text-[11px] text-zinc-400 mb-1">Target Telegram Link:</label>
                         <div class="flex items-center space-x-2">
-                            <input type="text" readonly :value="activeMenuUrl"
+                            <input type="text" readonly :value="activeQrUrl"
                                 class="w-full bg-admin-panel border border-admin-border rounded-xl px-3 py-2 text-xs text-gold font-mono truncate focus:outline-none">
-                            <button @click="copyMenuLink"
+                            <button @click="copyLink"
                                 class="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs text-white font-medium transition shrink-0 flex items-center space-x-1">
                                 <span x-text="copied ? 'Copied!' : 'Copy'"></span>
                             </button>
@@ -198,15 +281,13 @@
                     </div>
 
                     <div class="pt-2 flex flex-col sm:flex-row gap-2">
-                        <a :href="'https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=' + encodeURIComponent(activeMenuUrl)"
-                            download="gura-bicha-menu-qr.png"
-                            target="_blank"
-                            class="flex-1 text-center px-4 py-2.5 rounded-xl bg-admin-panel hover:bg-zinc-800 border border-admin-border text-xs text-white font-semibold transition flex items-center justify-center space-x-2">
+                        <button @click="downloadCard()" :disabled="downloadingCard"
+                            class="flex-1 text-center px-4 py-2.5 rounded-xl bg-admin-panel hover:bg-zinc-800 border border-gold/40 text-xs text-gold font-bold transition flex items-center justify-center space-x-2 shadow-sm">
                             <svg class="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            <span>Download QR</span>
-                        </a>
+                            <span x-text="downloadingCard ? 'Generating Card...' : '📥 Download Card (PNG)'"></span>
+                        </button>
 
                         <button onclick="window.print()"
                             class="px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-gold/10">
@@ -265,30 +346,27 @@
 }
 </style>
 
-<!-- HIDDEN PRINT TEMPLATE FOR TABLE TENT CARD -->
-<div id="print-tent-card" class="hidden p-8 max-w-md mx-auto text-center font-sans text-black bg-white border-4 border-black rounded-3xl m-8">
-    <div class="border-b-2 border-black pb-4 mb-4">
-        <h1 class="text-2xl font-black tracking-wider uppercase">GURA BICHA</h1>
-        <p class="text-xs uppercase tracking-widest font-semibold text-zinc-700">Sports Bar & Acoustic Lounge</p>
-        <p class="text-[11px] text-zinc-600 mt-1">Mexico, Chamber of Commerce Building, Addis Ababa</p>
-        <div x-show="selectedTable !== 'ALL'" class="mt-2 inline-block px-3 py-1 bg-black text-white rounded-lg text-xs font-black tracking-widest">
+<!-- HIDDEN PRINT TEMPLATE FOR TABLE TENT CARD (SMALL & SMART VIP CARD) -->
+<div id="print-tent-card" class="hidden p-6 max-w-xs mx-auto text-center font-sans text-black bg-white border-4 border-black rounded-3xl m-6">
+    <div class="border-b-2 border-black pb-3 mb-3">
+        <h1 class="text-xl font-black tracking-wider uppercase">GURA BICHA</h1>
+        <p class="text-[10px] uppercase tracking-widest font-bold text-zinc-700">Sports Bar & Acoustic Lounge</p>
+        <p class="text-[10px] text-zinc-600 mt-0.5">Mexico, Gura Bicha · Addis Ababa</p>
+        <div x-show="selectedTable !== 'ALL'" class="mt-2 inline-block px-3 py-0.5 bg-black text-white rounded-lg text-xs font-black tracking-widest">
             <span x-text="'TABLE ' + selectedTable"></span>
         </div>
     </div>
     
-    <div class="my-6 flex justify-center">
-        <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=' + encodeURIComponent(activeMenuUrl)" 
+    <div class="my-4 flex justify-center">
+        <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=' + encodeURIComponent(activeQrUrl)" 
              alt="QR Code" 
-             class="w-56 h-56 border-2 border-black rounded-xl">
+             class="w-48 h-48 border-2 border-black rounded-xl">
     </div>
 
-    <div class="space-y-1">
-        <h2 class="text-lg font-black uppercase tracking-wide">SCAN FOR LIVE MENU</h2>
-        <p class="text-xs text-zinc-600">Browse food, cocktails, draft beer & Ethiopian favorites from your phone</p>
-        <div class="pt-3 border-t border-zinc-300 mt-3 text-[10px] text-zinc-500 flex justify-between">
-            <span>Acoustic Saturdays 7:00 PM</span>
-            <span>Free High-Speed Wi-Fi</span>
-        </div>
+    <div class="space-y-0.5">
+        <h2 class="text-sm font-black uppercase tracking-wide">SCAN WITH CAMERA</h2>
+        <p class="text-[11px] text-amber-700 font-bold uppercase">To Open on Telegram</p>
+        <p class="text-[9px] text-zinc-500 font-mono">@GuraBichaLiveBot</p>
     </div>
 </div>
 @endsection

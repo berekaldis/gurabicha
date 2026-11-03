@@ -7,20 +7,33 @@
     <meta name="description" content="Addis Ababa's premier sports bar & acoustic lounge in Mexico, inside Chamber of Commerce Building. Live Premier League, Champions League, Saturday Acoustic Sessions & authentic Ethiopian cuisine.">
     <meta name="theme-color" content="#060709">
 
-    <!-- Immediate Theme & Telegram Insets Initialization Script (prevents theme flash & Telegram header overlap) -->
+    <!-- Immediate Theme, Telegram Check & Outside Browser Redirect Script -->
     <script>
         (function() {
             try {
                 var savedTheme = localStorage.getItem('GB_THEME') || 'dark';
                 document.documentElement.className = savedTheme;
-                var isTg = (window.Telegram && window.Telegram.WebApp) ||
+
+                var urlParams = new URLSearchParams(window.location.search);
+                var isExplicitWeb = urlParams.get('preview') === '1' || urlParams.get('web') === '1';
+
+                var isTg = (window.Telegram && window.Telegram.WebApp && (window.Telegram.WebApp.initData || (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user))) ||
                            window.TelegramWebviewProxy !== undefined ||
                            window.location.hash.indexOf('tgWebAppData') !== -1 ||
                            window.location.search.indexOf('tgWebAppPlatform') !== -1 ||
                            /Telegram/i.test(navigator.userAgent);
+
                 if (isTg) {
                     document.documentElement.classList.add('telegram-webapp');
                     document.documentElement.style.setProperty('--tg-top-inset', '56px');
+                } else if (!isExplicitWeb) {
+                    // Regular browser access: redirect directly to Telegram Bot as requested
+                    var botUrl = 'https://t.me/GuraBichaLiveBot';
+                    var table = urlParams.get('table');
+                    if (table) {
+                        botUrl += '?start=table_' + encodeURIComponent(table);
+                    }
+                    window.location.replace(botUrl);
                 }
             } catch(e) {}
         })();
@@ -233,6 +246,42 @@
         }
         html.light .text-gold-light {
             color: #92400e !important;
+        }
+
+        /* High-Contrast Button & Interactive Readability in Light Mode */
+        html.light .bg-gold,
+        html.light .bg-gold *,
+        html.light button.bg-gold,
+        html.light button.bg-gold *,
+        html.light a.bg-gold,
+        html.light a.bg-gold * {
+            color: #000000 !important;
+        }
+        html.light .bg-gold-light,
+        html.light .bg-gold-light * {
+            color: #000000 !important;
+        }
+        html.light button.bg-dark-panel,
+        html.light a.bg-dark-panel {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        html.light button.bg-dark-panel *,
+        html.light a.bg-dark-panel * {
+            color: #0f172a !important;
+        }
+        html.light button.bg-dark-panel.text-gold,
+        html.light button.bg-dark-panel .text-gold {
+            color: #b45309 !important;
+        }
+        html.light .bg-red-600,
+        html.light .bg-red-600 *,
+        html.light .bg-purple-900,
+        html.light .bg-purple-900 *,
+        html.light .bg-emerald-900,
+        html.light .bg-emerald-900 * {
+            color: #ffffff !important;
         }
 
         /* Form Controls in Light Mode */
@@ -505,7 +554,7 @@
                             <span x-text="t('hero_acoustic_badge')">LIVE ACOUSTIC</span>
                         </div>
                         <div class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 text-[10px] sm:text-xs font-semibold backdrop-blur-md">
-                            <span x-text="t('hero_football_badge')">⚽ 4K MATCHDAYS</span>
+                            <span x-text="t('hero_football_badge')">⚽ LIVE MATCHES</span>
                         </div>
                     </div>
 
@@ -651,7 +700,7 @@
                 </div>
 
                 <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                    Located in Addis Ababa at Mexico inside the Chamber of Commerce Building, <strong>Gura Bicha</strong> brings together the thrills of <strong>4K stadium matchday screenings</strong> and soulful <strong>Live Acoustic music sessions</strong>.
+                    Located in Addis Ababa at Mexico, Gura Bicha, <strong>Gura Bicha</strong> brings together the thrills of <strong>live matchday screenings</strong> and soulful <strong>Live Acoustic music sessions</strong>.
                 </p>
 
                 <!-- 4 FEATURE HIGHLIGHT CARDS -->
@@ -660,8 +709,8 @@
                         <div class="w-9 h-9 rounded-xl bg-gold/15 text-gold flex items-center justify-center text-lg mb-2 shadow-inner">
                             ⚽
                         </div>
-                        <h4 class="font-bold text-xs text-white uppercase tracking-wider">4K Stadium Screens</h4>
-                        <p class="text-[11px] text-zinc-400 mt-1 leading-snug">Multi-angle ultra HD screens & arena sound for Premier League & Champions League.</p>
+                        <h4 class="font-bold text-xs text-white uppercase tracking-wider">Big Screen Matches</h4>
+                        <p class="text-[11px] text-zinc-400 mt-1 leading-snug">Multi-angle screens & stadium sound for Premier League & Champions League.</p>
                     </div>
 
                     <div class="p-3.5 rounded-2xl bg-dark-panel/90 border border-dark-border hover:border-gold/50 transition-all card-hover-lift">
@@ -697,7 +746,7 @@
                         <div class="flex items-center space-x-2">
                             <span class="text-gold font-bold text-xs uppercase tracking-wider">📍 FIND US IN ADDIS ABABA</span>
                         </div>
-                        <h3 class="font-display text-xl font-bold uppercase text-white mt-0.5">Mexico, Inside Chamber of Commerce Building</h3>
+                        <h3 class="font-display text-xl font-bold uppercase text-white mt-0.5">Mexico, Gura Bicha Sports Bar</h3>
                         <p class="text-xs text-zinc-300 mt-1">Directly accessible in Mexico square, Addis Ababa, Ethiopia. Free secure parking.</p>
                     </div>
                     <a href="https://maps.app.goo.gl/CK9ZByHcwZeUaHDK6" target="_blank" class="px-3 py-1.5 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-black text-xs font-semibold border border-gold/30 transition shrink-0">
@@ -867,14 +916,16 @@
                             </div>
 
                             <!-- Score / Status -->
-                            <div class="px-2 sm:px-3 text-center shrink-0">
+                            <div class="px-2 sm:px-4 text-center shrink-0">
                                 <template x-if="match.homeScore !== null && match.awayScore !== null">
-                                    <div class="px-2.5 sm:px-3 py-1 rounded-xl bg-dark-panel border border-gold/40 shadow-inner font-display font-extrabold text-xs sm:text-base text-gold">
-                                        <span x-text="match.homeScore"></span> - <span x-text="match.awayScore"></span>
+                                    <div class="px-3 sm:px-4 py-1.5 rounded-xl bg-dark-panel border-2 border-gold/60 shadow-lg font-display font-black text-sm sm:text-lg text-gold flex items-center space-x-1.5">
+                                        <span x-text="match.homeScore"></span>
+                                        <span class="text-zinc-500 font-normal">:</span>
+                                        <span x-text="match.awayScore"></span>
                                     </div>
                                 </template>
                                 <template x-if="match.homeScore === null || match.awayScore === null">
-                                    <span class="text-[11px] sm:text-xs text-zinc-400 font-extrabold tracking-wider px-2 py-0.5 rounded bg-dark-panel border border-dark-border">VS</span>
+                                    <span class="text-[11px] sm:text-xs text-zinc-400 font-extrabold tracking-wider px-2.5 py-1 rounded-lg bg-dark-panel border border-dark-border">VS</span>
                                 </template>
                             </div>
 
@@ -1664,10 +1715,10 @@
                 <button @click="showMenuBoardModal = false" class="w-8 h-8 rounded-full bg-dark-panel text-zinc-300 hover:text-white flex items-center justify-center border border-dark-border transition">✕</button>
             </div>
             <div class="p-2 sm:p-3 overflow-y-auto bg-black flex items-center justify-center">
-                <img src="/images/menu-card.jpg" alt="Gura Bicha Official Menu Board" class="rounded-xl sm:rounded-2xl max-h-[65dvh] sm:max-h-[70vh] object-contain shadow-2xl border border-zinc-800">
+                <img src="{{ \App\Models\Setting::get('menu_board_image', asset('images/menu-card.jpg')) }}" alt="Gura Bicha Official Menu Board" class="rounded-xl sm:rounded-2xl max-h-[65dvh] sm:max-h-[70vh] object-contain shadow-2xl border border-zinc-800">
             </div>
             <div class="p-3 bg-dark-card border-t border-dark-border flex items-center justify-between text-xs">
-                <span class="text-zinc-400 text-[11px]">All prices in ETB · Chamber Bldg</span>
+                <span class="text-zinc-400 text-[11px]">All prices in ETB · Mexico, Gura Bicha</span>
                 <button @click="showMenuBoardModal = false" class="px-4 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs">
                     Close
                 </button>
@@ -1898,12 +1949,12 @@
                         nav_reserve: 'RESERVE',
                         nav_menu: 'Menu',
                         nav_fanclub: 'Fan Club',
-                        map_chamber: 'Chamber Bldg · Mexico',
+                        map_chamber: 'Mexico, Gura Bicha',
                         map_btn: 'Map',
                         hero_acoustic_badge: 'LIVE ACOUSTIC GROOVE',
-                        hero_football_badge: '⚽ PREMIER LEAGUE 4K ARENA',
+                        hero_football_badge: '⚽ LIVE FOOTBALL MATCHES',
                         hero_title_1: 'Football Passion & Live Grooves',
-                        hero_title_2: 'Mexico, Chamber of Commerce',
+                        hero_title_2: 'Mexico, Gura Bicha',
                         hero_reserve_btn: 'Reserve Acoustic Table',
                         hero_fixtures_btn: '⚽ Current Fixtures',
                         hero_fanclub_btn: '🔔 Fan Club Alerts',
@@ -1922,13 +1973,13 @@
                         tab_all_fixtures: '🔥 All Current',
                         tab_today_fixtures: '🔴 Today & Live',
                         tab_saturday_fixtures: '🎸 Weekend Specials',
-                        tab_results_fixtures: '🏆 Recent Results',
+                        tab_results_fixtures: '📊 Match Scores',
                         view_list: 'List',
                         view_calendar: 'Calendar',
                         live_now_badge: 'LIVE MATCH NOW AT GURA BICHA',
                         next_kickoff_in: 'NEXT BIG KICKOFF IN',
                         seating_note_title: 'ℹ️ SEATING NOTE:',
-                        seating_note_desc: 'Live 4K stadium screen with high-fidelity sound. Table booking available for live acoustic sessions.',
+                        seating_note_desc: 'Big screen match viewing with stadium sound. Table booking available for live acoustic sessions.',
                         search_club_placeholder: 'Search club (e.g. Arsenal, Chelsea, Liverpool, Man City, Real Madrid)...',
                         all_comps: 'All Competitions',
                         status_all: 'All Matches',
@@ -1953,12 +2004,12 @@
                         nav_reserve: 'ቦታ ይያዙ',
                         nav_menu: 'ሜኑ',
                         nav_fanclub: 'ደጋፊዎች',
-                        map_chamber: 'ንግድ ምክር ቤት · ሜክሲኮ',
+                        map_chamber: 'ሜክሲኮ፣ ጉራ ብቻ',
                         map_btn: 'ካርታ',
                         hero_acoustic_badge: 'የቀጥታ አኮስቲክ ሙዚቃ',
-                        hero_football_badge: '⚽ የፕሪሚየር ሊግ 4K ስክሪን',
+                        hero_football_badge: '⚽ የቀጥታ እግርኳስ ስርጭት',
                         hero_title_1: 'የእግር ኳስ ፍቅርና የቀጥታ ዜማ',
-                        hero_title_2: 'ሜክሲኮ፣ የንግድ ምክር ቤት ህንፃ',
+                        hero_title_2: 'ሜክሲኮ፣ ጉራ ብቻ',
                         hero_reserve_btn: 'የአኮስቲክ ጠረጴዛ ይያዙ',
                         hero_fixtures_btn: '⚽ የወቅቱ ጨዋታዎች',
                         hero_fanclub_btn: '🔔 የደጋፊዎች ማሳወቂያ',
@@ -1977,13 +2028,13 @@
                         tab_all_fixtures: '🔥 የወቅቱ ጨዋታዎች',
                         tab_today_fixtures: '🔴 ዛሬና ቀጥታ',
                         tab_saturday_fixtures: '🎸 የሳምንቱ መጨረሻ',
-                        tab_results_fixtures: '🏆 የቅርብ ውጤቶች',
+                        tab_results_fixtures: '📊 የጨዋታ ውጤቶች',
                         view_list: 'ዝርዝር',
                         view_calendar: 'ቀን መቁጠሪያ',
                         live_now_badge: 'ጉራ ብቻ አሁን በቀጥታ በመታየት ላይ ያለ',
                         next_kickoff_in: 'ቀጣዩ ትልቅ ጨዋታ የሚጀምርበት ጊዜ',
                         seating_note_title: 'ℹ️ የመቀመጫ ማስታወሻ፡',
-                        seating_note_desc: 'የ4K ስክሪን የቀጥታ ስርጭት። ጠረጴዛ ማስያዝ ለአኮስቲክ ሙዚቃ ክፍለ-ጊዜዎች ይገኛል።',
+                        seating_note_desc: 'የቀጥታ ስክሪን ስርጭት። ጠረጴዛ ማስያዝ ለአኮስቲክ ሙዚቃ ክፍለ-ጊዜዎች ይገኛል።',
                         search_club_placeholder: 'ክለብ ይፈልጉ (ለምሳሌ አርሰናል፣ ቼልሲ፣ ማን ሲቲ፣ ሪያል ማድሪድ)...',
                         all_comps: 'ሁሉም ውድድሮች',
                         status_all: 'ሁሉም ጨዋታዎች',
@@ -2309,33 +2360,35 @@
                     const added = new Set();
                     const todayIso = new Date().toISOString().slice(0, 10);
 
-                    // 1. Add dates from active scheduled events (flexible dates: could be any day!)
+                    // Only show dates from active scheduled events as requested by user
                     if (this.events && this.events.length > 0) {
                         for (const ev of this.events) {
-                            if (ev.date && ev.date >= todayIso && !added.has(ev.date)) {
+                            const isActive = ev.isActive !== false && ev.is_active !== false;
+                            if (ev.date && ev.date >= todayIso && !added.has(ev.date) && isActive) {
                                 const d = new Date(ev.date + 'T00:00:00');
                                 const label = d.toLocaleDateString(this.lang === 'am' ? 'am-ET' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                                out.push({ date: ev.date, label: label, tag: 'Event' });
+                                out.push({ 
+                                    date: ev.date, 
+                                    label: label, 
+                                    tag: ev.title || 'Acoustic Live' 
+                                });
                                 added.add(ev.date);
                             }
                         }
                     }
 
-                    // 2. Add upcoming weekend & next session dates
-                    let cursor = new Date();
-                    cursor.setDate(cursor.getDate() + 1);
-                    while (out.length < 5) {
-                        const iso = cursor.toISOString().slice(0, 10);
-                        if (!added.has(iso)) {
-                            const day = cursor.getDay();
-                            // Include Fridays (5), Saturdays (6), Sundays (0) or next immediate days
-                            if (day === 5 || day === 6 || day === 0 || out.length < 3) {
+                    // Fallback to the next upcoming Saturday only if no active events exist in database
+                    if (out.length === 0) {
+                        let cursor = new Date();
+                        for (let i = 0; i < 7; i++) {
+                            const iso = cursor.toISOString().slice(0, 10);
+                            if (cursor.getDay() === 6 && iso >= todayIso) {
                                 const label = cursor.toLocaleDateString(this.lang === 'am' ? 'am-ET' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                                out.push({ date: iso, label: label, tag: '' });
-                                added.add(iso);
+                                out.push({ date: iso, label: label, tag: 'Saturday Live' });
+                                break;
                             }
+                            cursor.setDate(cursor.getDate() + 1);
                         }
-                        cursor.setDate(cursor.getDate() + 1);
                     }
 
                     out.sort((a, b) => a.date.localeCompare(b.date));
@@ -2461,7 +2514,8 @@
                             payload.phone = this.fanForm.phone;
                         }
 
-                        const res = await fetch(`${window.API_BASE}/customer/profile`, {
+                        const endpoint = (window.API_BASE ? window.API_BASE : '/api') + '/customer/profile';
+                        const res = await fetch(endpoint, {
                             method: 'POST',
                             headers: { 
                                 'Content-Type': 'application/json',
@@ -2487,13 +2541,15 @@
                             }));
                         } catch (e) {}
 
-                        if (this.tgWebApp && this.tgWebApp.HapticFeedback) {
-                            this.tgWebApp.HapticFeedback.notificationOccurred('success');
-                        }
+                        try {
+                            if (this.tgWebApp && this.tgWebApp.HapticFeedback && typeof this.tgWebApp.HapticFeedback.notificationOccurred === 'function') {
+                                this.tgWebApp.HapticFeedback.notificationOccurred('success');
+                            }
+                        } catch(he) {}
 
                     } catch (e) {
                         console.error('Fan profile save error:', e);
-                        this.fanErrorMessage = 'Unable to save at the moment. Please try again.';
+                        this.fanErrorMessage = (e && e.message) ? ('Error: ' + e.message) : 'Network issue. Please try again.';
                     } finally {
                         this.savingFan = false;
                     }
@@ -2570,8 +2626,8 @@
                         } else if (this.fixtureTab === 'SATURDAY') {
                             if (!m.kickoff || !this.isSaturdayDate(m.kickoff.slice(0, 10))) return false;
                         } else if (this.fixtureTab === 'RESULTS') {
-                            const isFinished = (m.homeScore !== null && m.awayScore !== null) || m.status === 'FINISHED' || m.status === 'STATUS_FINAL';
-                            if (!isFinished) return false;
+                            const hasScore = (m.homeScore !== null && m.awayScore !== null) || m.status === 'FINISHED' || m.status === 'STATUS_FINAL' || this.isMatchLive(m);
+                            if (!hasScore) return false;
                         }
 
                         // Competition filter

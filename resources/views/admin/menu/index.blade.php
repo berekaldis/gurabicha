@@ -35,6 +35,46 @@
         </div>
     </div>
 
+    <!-- OFFICIAL MENU BOARD PHOTO UPLOADER (UPDATED BY ADMIN) -->
+    <div class="p-5 rounded-2xl bg-admin-card border border-gold/40 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-admin-border pb-3">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">📜</span>
+                <div>
+                    <h4 class="font-display font-bold text-sm text-white uppercase tracking-wider">Official Menu Board Image</h4>
+                    <p class="text-xs text-zinc-400">Upload or replace the full high-resolution Menu Board shown to customers</p>
+                </div>
+            </div>
+            <a href="{{ $menuBoardImage ?? asset('images/menu-card.jpg') }}" target="_blank" class="text-xs text-gold hover:underline font-semibold flex items-center space-x-1">
+                <span>View Current Board</span>
+                <span>↗</span>
+            </a>
+        </div>
+
+        <form method="POST" action="{{ route('admin.menu.board.update') }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+            @csrf
+            <div class="sm:col-span-2 space-y-2">
+                <label class="block text-xs font-semibold text-zinc-300">Upload New Menu Board Image (JPEG, PNG, WEBP):</label>
+                <div class="flex items-center space-x-2">
+                    <input type="file" name="menu_board_file" accept="image/*" class="w-full text-xs text-zinc-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-admin-panel file:text-gold hover:file:bg-zinc-800 cursor-pointer">
+                </div>
+                <div class="pt-1">
+                    <label class="block text-[11px] text-zinc-400">Or enter an image URL:</label>
+                    <input type="url" name="menu_board_url" placeholder="https://..." value="{{ str_starts_with($menuBoardImage ?? '', 'http') ? $menuBoardImage : '' }}" class="w-full bg-admin-panel border border-admin-border rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gold">
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center space-y-2">
+                <div class="w-24 h-24 rounded-xl border border-admin-border overflow-hidden bg-black shadow-inner flex items-center justify-center">
+                    <img src="{{ $menuBoardImage ?? asset('images/menu-card.jpg') }}" alt="Menu Board Preview" class="w-full h-full object-cover">
+                </div>
+                <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs transition shadow-md shadow-gold/20">
+                    💾 Save Menu Board
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- CATEGORY TABS & SEARCH BAR -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-admin-border pb-3">
         <div class="flex items-center space-x-2">

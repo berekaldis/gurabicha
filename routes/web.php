@@ -84,6 +84,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
         Route::post('matches/{match}/toggle-featured', [AdminMatchController::class, 'toggleFeatured'])->name('matches.toggle-featured');
 
         // Menu
+        Route::post('menu/board-update', [AdminMenuItemController::class, 'updateMenuBoard'])->name('menu.board.update');
         Route::resource('menu', AdminMenuItemController::class)->except(['show', 'create', 'edit']);
 
         // Customer Registry & Fan Club Alerts
